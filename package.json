@@ -1,0 +1,28 @@
+{
+  "name": "realtime-chat-application",
+  "version": "1.0.0",
+  "description": "A real-time chat application exploring WebSockets, Socket.IO, authentication, messaging, presence, and scalable backend architecture with Redis.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anshik-gupta/RealTime-chat-application.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/anshik-gupta/RealTime-chat-application/issues"
+  },
+  "homepage": "https://github.com/anshik-gupta/RealTime-chat-application#readme",
+  "dependencies": {
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.3"
+  }
+}
