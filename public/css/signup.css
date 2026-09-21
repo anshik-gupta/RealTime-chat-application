@@ -1,0 +1,199 @@
+/* =========================
+   Authentication Page
+   ========================= */
+
+.auth-page {
+  background: #fffdf0;
+}
+
+/* Left branding section */
+
+.auth-brand-section {
+  background: linear-gradient(145deg, #ffe84a, #f8d928);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-content {
+  margin: auto;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.brand-logo {
+  width: 90px;
+  height: 90px;
+
+  margin: 0 auto 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ffffff;
+  color: #16a34a;
+
+  border-radius: 28px;
+
+  font-size: 42px;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.brand-content h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  color: #173b2b;
+
+  margin-bottom: 10px;
+}
+
+.brand-content p {
+  font-size: 1.2rem;
+  color: #315d45;
+}
+
+.brand-decoration {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+
+  margin-top: 30px;
+}
+
+.brand-decoration span {
+  width: 12px;
+  height: 12px;
+
+  border-radius: 50%;
+
+  background: #16a34a;
+}
+
+.brand-decoration span:nth-child(2) {
+  width: 18px;
+  height: 18px;
+
+  margin-top: -3px;
+}
+
+/* Authentication card */
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+
+  padding: 40px;
+
+  background: #ffffff;
+
+  border-radius: 24px;
+
+  box-shadow: 0 15px 45px rgba(22, 163, 74, 0.1);
+}
+
+.auth-card h2 {
+  font-weight: 700;
+  color: #173b2b;
+}
+
+.auth-card .form-label {
+  font-weight: 600;
+  color: #315d45;
+}
+
+.input-group-text {
+  background: #f7f9f2;
+  border-color: #dee5d8;
+  color: #16a34a;
+}
+
+.form-control {
+  border-color: #dee5d8;
+  padding: 11px 12px;
+}
+
+.form-control:focus {
+  border-color: #16a34a;
+
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.12);
+}
+
+/* Register button */
+
+.register-btn {
+  background: #16a34a;
+  border: none;
+
+  color: white;
+
+  padding: 12px;
+
+  font-weight: 600;
+
+  border-radius: 12px;
+
+  transition: 0.2s ease;
+}
+
+.register-btn:hover {
+  background: #12813b;
+
+  transform: translateY(-1px);
+}
+
+/* Login link */
+
+.login-link {
+  color: #16a34a;
+
+  font-weight: 600;
+
+  text-decoration: none;
+
+  margin-left: 5px;
+}
+
+.login-link:hover {
+  color: #0d7133;
+}
+
+/* Mobile logo */
+
+.mobile-logo {
+  display: none;
+
+  width: 55px;
+  height: 55px;
+
+  margin: 0 auto 15px;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #ffe84a;
+  color: #16a34a;
+
+  border-radius: 16px;
+
+  font-size: 25px;
+}
+
+/* Mobile */
+
+@media (max-width: 991px) {
+  .auth-page {
+    background: linear-gradient(145deg, #fff9c7, #ffffff);
+  }
+
+  .auth-card {
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .mobile-logo {
+    display: flex;
+  }
+}

@@ -1,7 +1,15 @@
-import { timeStamp } from "console";
+//core imports
+import dns from "dns";
+import "dotenv/config";
+import connectDB from "./config/db.js";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+
+//userMade imports
+import authRouter from "./routes/authRoutes.js";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 
@@ -9,7 +17,9 @@ app.set("view engine", "ejs");
 app.set("views", "./src/views");
 
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 
+connectDB();
 
 const PORT = 3000;
 
@@ -34,8 +44,10 @@ io.on("connection", (socket) => {
 });
 
 app.get("/", (req, res) => {
-    res.render("homeView");
+    res.redirect("/signup");
 });
+
+app.use("/", authRouter);
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

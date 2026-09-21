@@ -20,8 +20,12 @@
   },
   "homepage": "https://github.com/anshik-gupta/RealTime-chat-application#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.10.0",
     "nodemon": "^3.1.14",
     "socket.io": "^4.8.3"
   }

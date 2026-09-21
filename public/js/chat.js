@@ -14,7 +14,7 @@ messageInput.addEventListener("keydown", (event)=>{
     if(event.key==="Enter"){
         sendMessage();
     }
-})
+});
 
 function sendMessage(){
     const message = messageInput.value.trim();
