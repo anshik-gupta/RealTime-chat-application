@@ -2,7 +2,7 @@
   "name": "realtime-chat-application",
   "version": "1.0.0",
   "description": "A real-time chat application exploring WebSockets, Socket.IO, authentication, messaging, presence, and scalable backend architecture with Redis.",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/app.js"
@@ -21,6 +21,7 @@
   "homepage": "https://github.com/anshik-gupta/RealTime-chat-application#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
     "express": "^5.2.1",

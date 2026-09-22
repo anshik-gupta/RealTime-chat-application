@@ -61,12 +61,18 @@ const postLoginController = async (req, res, next) => {
         maxAge: 7* 24* 60* 60* 1000
     });
 
-    return res.redirect("/anshsdkjfi");
+    return res.redirect("/");
 };
+
+const postLogout = (req, res, next) =>{
+    res.clearCookie("token");
+    res.redirect("/login");
+}
 
 export {
     getSignupController,
     postSignupController,
     getLoginController,
-    postLoginController
+    postLoginController,
+    postLogout
 };
