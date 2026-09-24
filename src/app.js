@@ -12,6 +12,10 @@ import authRouter from "./routes/authRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
+import conversationRouter from "./routes/apiRoutes/conversationRoutes.js";
+import messageRouter from "./routes/apiRoutes/messageRoutes.js";
+import Message from "./models/messagesModel.js";
+import Conversation from "./models/conversationModel.js";
 
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
@@ -37,12 +41,65 @@ io.use(socketAuthMiddleware);
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.userId);
 
-    socket.on("sendMessage", (message) => {
-        io.emit("newMessage", {
-            message: message,
-            senderId: socket.id,
-            timestamp: new Date()
-        });
+    socket.on("sendMessage", async (data) => {
+        try{
+            const {conversationId, message} = data;
+
+            if(typeof message !== "string"){
+                return;
+            }
+
+            const cleanMessage = message.trim();
+
+            if(cleanMessage===""){
+                return;
+            }
+
+            //checking the socket.userId exists in the conversation or not
+            const conv = await Conversation.findOne({
+                _id: conversationId,
+                participants: socket.userId
+            });
+
+            if(!conv){
+                return;
+            }
+
+            const newMessage = await Message.create({
+                conversation: conversationId,
+                sender: socket.userId,
+                text: cleanMessage
+            });
+            console.log("messageSaved: ", newMessage._id);
+
+            io.to(conversationId).emit("newMessage", {
+                _id: newMessage._id,
+                conversationId: conversationId,
+                senderId: socket.userId,
+                message: newMessage.text,
+                createdAt: newMessage.createdAt 
+            });
+        } catch (error) {
+            console.error("SEND MESSAGE ERROR:", error);
+        }
+    });
+
+    socket.on("joinConversation", async (conversationId) => {
+
+        const conv = await Conversation.findOne({
+                _id: conversationId,
+                participants: socket.userId
+            });
+
+            if(!conv){
+                return;
+            }
+
+        socket.join(conversationId);
+    });
+
+    socket.on("leaveConversation", (conversationId) => {
+        socket.leave(conversationId);
     });
 
     socket.on("disconnect", () => {
@@ -56,6 +113,8 @@ app.get("/", authMiddleware, (req, res) => {
 
 app.use("/", authRouter);
 app.use("/chat", chatRouter);
+app.use("/api/conversations", conversationRouter);
+app.use("/api/messages", messageRouter);
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
