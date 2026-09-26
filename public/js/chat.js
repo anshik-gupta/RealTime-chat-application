@@ -12,6 +12,31 @@ socket.on("connect", () => {
     }
 });
 
+socket.on("messageStatusUpdated", (messageData)=>{
+    const {messageId, status} = messageData;
+
+     const messageWrapper =
+        document.querySelector(`[data-message-id="${messageId}"]`);
+
+    if (!messageWrapper) {
+        return;
+    }
+
+    const statusElement =
+        messageWrapper.querySelector(".message-status");
+
+    if (!statusElement) {
+        return;
+    }
+
+    if (status === "delivered") {
+        statusElement.textContent = "✓✓";
+    }else if (status === "read") {
+        statusElement.textContent = "✓✓";
+        statusElement.classList.add("text-info");
+    }
+});
+
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 
@@ -42,12 +67,19 @@ function sendMessage(){
     messageInput.value = "";
 }
 
+socket.on("pendingMessages", (messages) => {
+    messages.forEach(message => {
+        socket.emit("messageDelivered", message._id);
+    });
+});
+
 socket.on("newMessage", (data) => {
     const messageWrapper = document.createElement("div");
     const messageElement = document.createElement("div");
     const messagesContainer = document.getElementById("messages");
 
     messageWrapper.classList.add("mb-2", "d-flex");
+    messageWrapper.dataset.messageId = data._id;
 
     if (data.senderId === currentUserId) {
         messageWrapper.classList.add("justify-content-end");
@@ -74,8 +106,25 @@ socket.on("newMessage", (data) => {
     messageElement.textContent = data.message;
 
     messageWrapper.appendChild(messageElement);
-
     document.getElementById("messages").appendChild(messageWrapper);
+
+    if(data.senderId === currentUserId){
+        const statusElement = document.createElement("span");
+        statusElement.classList.add("ms-1", "message-status");
+
+        if(data.status === "sent"){
+            statusElement.textContent = "✓";
+        }else if(data.status === "delivered"){
+            statusElement.textContent = "✓✓";
+        }else if(data.status === "read"){
+            statusElement.textContent = "✓✓";
+            statusElement.classList.add("text-info");
+        }
+
+        messageWrapper.appendChild(statusElement);
+    }else{
+        socket.emit("messageDelivered", data._id);
+    }
 
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
@@ -133,6 +182,7 @@ chatUsers.forEach(user => {
         }
 
         displayMessages(messageData.messages);
+        socket.emit("messagesRead", currentConversationId);
 
         // Show chat
         emptyChat.classList.add("d-none");
@@ -154,6 +204,7 @@ function displayMessages(messages) {
         const messageElement = document.createElement("div");
 
         messageWrapper.classList.add("mb-2", "d-flex");
+        messageWrapper.dataset.messageId = message._id;
 
         if (message.sender._id === currentUserId) {
             messageWrapper.classList.add("justify-content-end");
@@ -181,6 +232,22 @@ function displayMessages(messages) {
 
         messageWrapper.appendChild(messageElement);
         messagesContainer.appendChild(messageWrapper);
+
+        if(message.sender._id === currentUserId){
+        const statusElement = document.createElement("span");
+        statusElement.classList.add("ms-1", "message-status");
+
+        if(message.status === "sent"){
+            statusElement.textContent = "✓";
+        }else if(message.status === "delivered"){
+            statusElement.textContent = "✓✓";
+        }else if(message.status === "read"){
+            statusElement.textContent = "✓✓";
+            statusElement.classList.add("text-info");
+        }
+
+        messageWrapper.appendChild(statusElement);
+    }
 
     });
     messagesContainer.scrollTop = messagesContainer.scrollHeight;

@@ -38,8 +38,63 @@ const io = new Server(server);
 
 io.use(socketAuthMiddleware);
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
     console.log("A user connected:", socket.userId);
+
+    socket.join(socket.userId.toString());
+
+    const conversations = await Conversation.find({
+        participants: socket.userId
+    });
+
+    const conversationIds = conversations.map(conversation => conversation._id);
+
+    const pendingMessages = await Message.find({
+        conversation: {$in: conversationIds},
+        sender: {$ne: socket.userId},
+        status: "sent"
+    })
+
+    socket.emit("pendingMessages", pendingMessages);
+
+    socket.on("messagesRead", async (conversationId)=>{
+        try{
+            const conv = await Conversation.findOne({
+                _id: conversationId,
+                participants: socket.userId
+            });
+
+            if (!conv) {
+                return;
+            }
+            
+            const messages = await Message.find({
+                conversation: conversationId,
+                sender: {$ne: socket.userId},
+                status: "delivered"
+            });
+            
+            await Message.updateMany(
+                {
+                    conversation: conversationId,
+                    sender: {$ne: socket.userId},
+                    status: "delivered"
+                },{
+                    $set: {status: "read"}
+                }
+            )
+
+            messages.forEach(message => {
+                io.to(message.sender.toString()).emit("messageStatusUpdated", {
+                    messageId: message._id,
+                    status: "read"
+                });
+            });
+            
+        }catch(error){
+            console.error(error);
+        }
+    });
 
     socket.on("sendMessage", async (data) => {
         try{
@@ -70,17 +125,53 @@ io.on("connection", (socket) => {
                 sender: socket.userId,
                 text: cleanMessage
             });
-            console.log("messageSaved: ", newMessage._id);
 
             io.to(conversationId).emit("newMessage", {
                 _id: newMessage._id,
                 conversationId: conversationId,
                 senderId: socket.userId,
                 message: newMessage.text,
+                status: newMessage.status,
                 createdAt: newMessage.createdAt 
             });
         } catch (error) {
             console.error("SEND MESSAGE ERROR:", error);
+        }
+    });
+
+    socket.on("messageDelivered", async (messageId)=>{
+        try{
+            const message = await Message.findOne({
+                _id: messageId
+            });
+
+            if(!message){
+                return;
+            }
+
+            const conv = await Conversation.findOne({
+                _id: message.conversation,
+                participants: socket.userId
+            });
+
+            if(!conv){
+                return;
+            }
+
+            if(message.sender.toString() === socket.userId.toString()){
+                return;
+            }
+
+            message.status = "delivered";
+            await message.save();
+
+            io.to(message.sender.toString()).emit("messageStatusUpdated", {
+                messageId: message._id,
+                status: message.status
+            });
+
+        }catch(error){
+            console.error("MESSAGE DELIVERED ERROR:", error);
         }
     });
 
