@@ -9,5 +9,5 @@ messageRouter.get(
     authMiddleware,
     getMessages
 );
-
+ 
 export default messageRouter;

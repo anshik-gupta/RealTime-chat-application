@@ -5,6 +5,7 @@ const getMessages = async (req, res, next) => {
     try{
         const currentUser = req.userId;
         const conversationId = req.params.conversationId;
+        const before = req.query.before;
 
         const conversation = await Conversation.findOne({
             _id: conversationId,
@@ -17,14 +18,42 @@ const getMessages = async (req, res, next) => {
             });
         }
 
-        const messages = await Message.find({
+        let query = {
             conversation: conversationId
-        })
+        };
+
+        if(before){
+            const cursorMessage = await Message.findById({
+                _id: before,
+                conversation: conversationId
+            });
+
+            if(!cursorMessage){
+                return res.status(400).json({
+                    message: "invalid cursor"
+                });
+            }
+
+            query.createdAt = {
+                $lt: cursorMessage.createdAt
+            };
+        }
+
+        const messages = await Message.find(query)
             .populate("sender", "username")
-            .sort({createdAt : 1});
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        messages.reverse();
+
+        const hasMore = messages.length === 20;
+
+        const nextCursor = messages.length > 0 ? messages[0]._id : null;
 
         return res.json({
-            messages
+            messages,
+            hasMore,
+            nextCursor
         });
 
     }catch(error){

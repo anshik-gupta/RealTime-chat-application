@@ -2,6 +2,10 @@ const socket = io();
 
 let currentUserId = null;
 let currentConversationId = null;
+let nextCursor = null;
+let hasMoreMessages = true;
+let loadingOlderMessages = false;
+const messagesContainer = document.getElementById("messages");
 
 socket.on("connect", () => {
     console.log("Connected to server");
@@ -30,10 +34,9 @@ socket.on("messageStatusUpdated", (messageData)=>{
     }
 
     if (status === "delivered") {
-        statusElement.textContent = "✓✓";
+        statusElement.innerHTML = '<span style="letter-spacing: -5px; font-weight: bold; color: #8696A0;">&#x2713;&#x2713;</span>';
     }else if (status === "read") {
-        statusElement.textContent = "✓✓";
-        statusElement.classList.add("text-info");
+        statusElement.innerHTML = '<span style="letter-spacing: -5px; font-weight: bold; color: #34B7F1;">&#x2713;&#x2713;</span>';
     }
 });
 
@@ -74,56 +77,28 @@ socket.on("pendingMessages", (messages) => {
 });
 
 socket.on("newMessage", (data) => {
-    const messageWrapper = document.createElement("div");
-    const messageElement = document.createElement("div");
-    const messagesContainer = document.getElementById("messages");
 
-    messageWrapper.classList.add("mb-2", "d-flex");
-    messageWrapper.dataset.messageId = data._id;
+    const message = {
+        _id: data._id,
+        sender: {
+            _id: data.senderId
+        },
+        text: data.message,
+        status: data.status
+    };
+
+    const messageWrapper = createMessageElement(message);
+
+    messagesContainer.appendChild(messageWrapper);
 
     if (data.senderId === currentUserId) {
-        messageWrapper.classList.add("justify-content-end");
-
-        messageElement.classList.add(
-            "d-inline-block",
-            "bg-primary",
-            "text-white",
-            "p-2",
-            "rounded"
-        );
+        // Nothing else needed
     } else {
-        messageWrapper.classList.add("justify-content-start");
-
-        messageElement.classList.add(
-            "d-inline-block",
-            "bg-light",
-            "text-dark",
-            "p-2",
-            "rounded"
-        );
-    }
-
-    messageElement.textContent = data.message;
-
-    messageWrapper.appendChild(messageElement);
-    document.getElementById("messages").appendChild(messageWrapper);
-
-    if(data.senderId === currentUserId){
-        const statusElement = document.createElement("span");
-        statusElement.classList.add("ms-1", "message-status");
-
-        if(data.status === "sent"){
-            statusElement.textContent = "✓";
-        }else if(data.status === "delivered"){
-            statusElement.textContent = "✓✓";
-        }else if(data.status === "read"){
-            statusElement.textContent = "✓✓";
-            statusElement.classList.add("text-info");
+        if (data.conversationId === currentConversationId) {
+            socket.emit("messageRead", data._id);
+        } else {
+            socket.emit("messageDelivered", data._id);
         }
-
-        messageWrapper.appendChild(statusElement);
-    }else{
-        socket.emit("messageDelivered", data._id);
     }
 
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -133,12 +108,18 @@ const chatUsers = document.querySelectorAll(".chat-user");
 const emptyChat = document.getElementById("emptyChat");
 const chatArea = document.getElementById("chatArea");
 const chatUsername = document.getElementById("chatUsername");
+let currentChatUserId = null;
+let otherUserOnline = false;
 
 chatUsers.forEach(user => {
     user.addEventListener("click", async () => {
 
         const userId = user.dataset.userId;
         const username = user.querySelector("strong").textContent;
+
+        currentChatUserId = userId;
+
+        socket.emit("presenceCheck", userId);
 
         // Get conversation
         const conversationResponse =
@@ -181,6 +162,9 @@ chatUsers.forEach(user => {
             return;
         }
 
+        nextCursor = messageData.nextCursor;
+        hasMoreMessages = messageData.hasMore;
+
         displayMessages(messageData.messages);
         socket.emit("messagesRead", currentConversationId);
 
@@ -191,64 +175,231 @@ chatUsers.forEach(user => {
         chatArea.classList.add("d-flex");
 
         chatUsername.textContent = username;
+
+        requestAnimationFrame(() => {messagesContainer.scrollTop = messagesContainer.scrollHeight;});
     });
 });
 
-function displayMessages(messages) {
-    const messagesContainer = document.getElementById("messages");
+let typeTimer;
 
-    messagesContainer.innerHTML = "";
+messageInput.addEventListener("input", ()=>{
+    if(!currentConversationId){
+        return;
+    }
+    socket.emit("startTyping", currentConversationId);
 
-    messages.forEach(message => {
-        const messageWrapper = document.createElement("div");
-        const messageElement = document.createElement("div");
+    clearTimeout(typeTimer);
 
-        messageWrapper.classList.add("mb-2", "d-flex");
-        messageWrapper.dataset.messageId = message._id;
+    typeTimer = setTimeout(()=>{
+        socket.emit("stoppedTyping", currentConversationId);
+    },1000);
+});
 
-        if (message.sender._id === currentUserId) {
-            messageWrapper.classList.add("justify-content-end");
+function createMessageElement(message) {
+    const messageWrapper = document.createElement("div");
+    const messageElement = document.createElement("div");
 
-            messageElement.classList.add(
-                "d-inline-block",
-                "bg-primary",
-                "text-white",
-                "p-2",
-                "rounded"
-            );
-        } else {
-            messageWrapper.classList.add("justify-content-start");
+    messageWrapper.classList.add("mb-2", "d-flex");
+    messageWrapper.dataset.messageId = message._id;
 
-            messageElement.classList.add(
-                "d-inline-block",
-                "bg-light",
-                "text-dark",
-                "p-2",
-                "rounded"
-            );
-        }
+    if (message.sender._id === currentUserId) {
+        messageWrapper.classList.add("justify-content-end");
 
-        messageElement.textContent = message.text;
+        messageElement.classList.add(
+            "d-inline-block",
+            "bg-primary",
+            "text-white",
+            "p-2",
+            "rounded"
+        );
+    } else {
+        messageWrapper.classList.add("justify-content-start");
 
-        messageWrapper.appendChild(messageElement);
-        messagesContainer.appendChild(messageWrapper);
+        messageElement.classList.add(
+            "d-inline-block",
+            "bg-light",
+            "text-dark",
+            "p-2",
+            "rounded"
+        );
+    }
 
-        if(message.sender._id === currentUserId){
+    messageElement.textContent = message.text;
+
+    messageWrapper.appendChild(messageElement);
+
+    if (message.sender._id === currentUserId) {
         const statusElement = document.createElement("span");
+
         statusElement.classList.add("ms-1", "message-status");
 
-        if(message.status === "sent"){
-            statusElement.textContent = "✓";
-        }else if(message.status === "delivered"){
-            statusElement.textContent = "✓✓";
-        }else if(message.status === "read"){
-            statusElement.textContent = "✓✓";
-            statusElement.classList.add("text-info");
+        if (message.status === "sent") {
+            statusElement.innerHTML =
+                '<span style="letter-spacing: -5px; font-weight: bold; color: #8696A0;">&#x2713;</span>';
+        } else if (message.status === "delivered") {
+            statusElement.innerHTML =
+                '<span style="letter-spacing: -5px; font-weight: bold; color: #8696A0;">&#x2713;&#x2713;</span>';
+        } else if (message.status === "read") {
+            statusElement.innerHTML =
+                '<span style="letter-spacing: -5px; font-weight: bold; color: #34B7F1;">&#x2713;&#x2713;</span>';
         }
 
         messageWrapper.appendChild(statusElement);
     }
 
-    });
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return messageWrapper;
 }
+
+function displayMessages(messages) {
+    messagesContainer.innerHTML = "";
+
+    messages.forEach(message => {
+        const messageWrapper = createMessageElement(message);
+
+        messagesContainer.appendChild(messageWrapper);
+    });
+}
+
+messagesContainer.addEventListener("scroll", async () => {
+
+    if (messagesContainer.scrollTop !== 0) {
+        return;
+    }
+
+    if (!hasMoreMessages) {
+        return;
+    }
+
+    if (loadingOlderMessages) {
+        return;
+    }
+
+    await loadOlderMessages();
+});
+
+async function loadOlderMessages() {
+
+    if (!currentConversationId || !nextCursor) {
+        return;
+    }
+
+    loadingOlderMessages = true;
+
+    const oldScrollHeight = messagesContainer.scrollHeight;
+
+    try {
+
+        const response = await fetch(
+            `/api/messages/${currentConversationId}?before=${nextCursor}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log(data.message);
+            return;
+        }
+
+        const oldMessages = data.messages;
+
+        // Add older messages before the existing ones
+        prependMessages(oldMessages);
+
+        nextCursor = data.nextCursor;
+        hasMoreMessages = data.hasMore;
+
+        const newScrollHeight = messagesContainer.scrollHeight;
+
+        messagesContainer.scrollTop = newScrollHeight - oldScrollHeight;
+
+    } catch(error) {
+
+        console.error("ERROR LOADING OLDER MESSAGES:", error);
+
+    } finally {
+
+        loadingOlderMessages = false;
+    }
+}
+
+function prependMessages(messages) {
+
+    [...messages].reverse().forEach(message => {
+        const messageWrapper = createMessageElement(message);
+
+        messagesContainer.prepend(messageWrapper);
+    });
+}
+
+const userPresence = document.getElementById("chatPresence");
+
+socket.on("userOnline", (data) => {
+
+    if (data.userId !== currentChatUserId) {
+        return;
+    }
+
+    otherUserOnline = true;
+
+    userPresence.textContent = "● Online";
+
+    userPresence.classList.remove("text-muted");
+    userPresence.classList.add("text-success");
+});
+
+socket.on("userOffline", (data) => {
+
+    if (data.userId !== currentChatUserId) {
+        return;
+    }
+
+    otherUserOnline = false;
+
+    userPresence.textContent = "○ Offline";
+
+    userPresence.classList.remove("text-success");
+    userPresence.classList.add("text-muted");
+});
+
+socket.on("presenceStatus", (data) => {
+    if (data.userId !== currentChatUserId) {
+        return;
+    }
+
+    otherUserOnline = data.online;
+
+    if (data.online) {
+        userPresence.textContent = "● Online";
+        userPresence.classList.remove("text-muted");
+        userPresence.classList.add("text-success");
+    } else {
+        userPresence.textContent = "○ Offline";
+        userPresence.classList.remove("text-success");
+        userPresence.classList.add("text-muted");
+    }
+});
+
+socket.on("userTyping", (data)=>{
+    if(data.userId !== currentChatUserId){
+        return;
+    }
+
+    userPresence.textContent = "typing...";
+    userPresence.classList.remove("text-success", "text-muted");
+});
+
+socket.on("userStoppedTyping", (data)=>{
+    if(data.userId !== currentChatUserId){
+        return;
+    }
+
+    if(otherUserOnline){
+        userPresence.textContent = "● Online";
+        userPresence.classList.remove("text-muted");
+        userPresence.classList.add("text-success");
+    }else{
+        userPresence.textContent = "○ Offline";
+        userPresence.classList.remove("text-success");
+        userPresence.classList.add("text-muted");
+    }
+});

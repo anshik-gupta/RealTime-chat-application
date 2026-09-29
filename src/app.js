@@ -38,14 +38,34 @@ const io = new Server(server);
 
 io.use(socketAuthMiddleware);
 
+const onlineUsers = new Map();
+
 io.on("connection", async (socket) => {
     console.log("A user connected:", socket.userId);
 
     socket.join(socket.userId.toString());
 
+    const onlineCount = onlineUsers.get(socket.userId.toString()) || 0;
+
+    onlineUsers.set(socket.userId.toString(), onlineCount+1);
+
+    const becameOnline = onlineCount === 0;
+
     const conversations = await Conversation.find({
         participants: socket.userId
     });
+
+    if(becameOnline){
+        conversations.forEach(conv => {
+            conv.participants.forEach(participant => {
+                if(participant.toString() !== socket.userId.toString()){
+                    io.to(participant.toString()).emit("userOnline", {
+                        userId: socket.userId.toString()
+                    });
+                }
+            });
+        });
+    }
 
     const conversationIds = conversations.map(conversation => conversation._id);
 
@@ -149,6 +169,10 @@ io.on("connection", async (socket) => {
                 return;
             }
 
+            if(message.status !== "sent"){
+                return;
+            }
+
             const conv = await Conversation.findOne({
                 _id: message.conversation,
                 participants: socket.userId
@@ -175,6 +199,46 @@ io.on("connection", async (socket) => {
         }
     });
 
+    socket.on("messageRead", async (messageId)=>{
+        try{
+            const message = await Message.findOne({
+                _id: messageId
+            });
+
+            if(!message){
+                return;
+            }
+
+            if(message.status !== "sent" && message.status !== "delivered"){
+                return;
+            }
+
+            const conv = await Conversation.findOne({
+                _id: message.conversation,
+                participants: socket.userId
+            });
+
+            if(!conv){
+                return;
+            }
+
+            if(message.sender.toString() === socket.userId.toString()){
+                return;
+            }
+
+            message.status = "read";
+            await message.save();
+
+            io.to(message.sender.toString()).emit("messageStatusUpdated", {
+                messageId: message._id,
+                status: message.status
+            });
+
+        }catch(error){
+            console.error("MESSAGE READ ERROR:", error);
+        }
+    });
+
     socket.on("joinConversation", async (conversationId) => {
 
         const conv = await Conversation.findOne({
@@ -193,8 +257,48 @@ io.on("connection", async (socket) => {
         socket.leave(conversationId);
     });
 
-    socket.on("disconnect", () => {
+    socket.on("presenceCheck", (userId) => {
+    const isOnline = onlineUsers.has(userId.toString());
+
+        socket.emit("presenceStatus", {
+            userId: userId,
+            online: isOnline
+        });
+    });
+
+    socket.on("startTyping", (conversationId)=>{
+        socket.to(conversationId).emit("userTyping", {
+            userId: socket.userId.toString()
+        });
+    });
+
+    socket.on("stoppedTyping", (conversationId)=>{
+        socket.to(conversationId).emit("userStoppedTyping", {
+            userId: socket.userId.toString()
+        });
+    });
+
+    socket.on("disconnect", async () => {
         console.log("A user disconnected:", socket.userId);
+        const onlineCount = onlineUsers.get(socket.userId.toString());
+        if (onlineCount <= 1) {
+            onlineUsers.delete(socket.userId.toString());
+            const conversations = await Conversation.find({
+                participants: socket.userId
+            })
+
+            conversations.forEach(conv => {
+            conv.participants.forEach(participant => {
+                if(participant.toString() !== socket.userId.toString()){
+                    io.to(participant.toString()).emit("userOffline", {
+                        userId: socket.userId.toString()
+                    });
+                }
+            });
+        });
+        } else {
+            onlineUsers.set(socket.userId.toString(), onlineCount - 1);
+        }
     });
 });
 
