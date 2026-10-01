@@ -40,7 +40,7 @@ const getMessages = async (req, res, next) => {
         }
 
         const messages = await Message.find(query)
-            .populate("sender", "username")
+            .populate("sender", "name")
             .sort({ createdAt: -1 })
             .limit(20);
 

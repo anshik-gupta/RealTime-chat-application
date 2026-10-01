@@ -8,22 +8,31 @@ const getSignupController = (req, res, next) => {
 
 const postSignupController = async (req, res, next) => {
 
-    const { username, email, password, confirmPassword } = req.body;
+    const { name, username, email, phone, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
         return res.status(400).send("Passwords do not match");
     }
 
-    const existingUser = await User.findOne({email});
-    if(existingUser){
+    const existingUser = await User.findOne({
+        $or: [
+            { email },
+            { username },
+            { phone }
+        ]
+    });
+
+    if (existingUser) {
         return res.redirect("/login");
-    }
+    }   
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
     await User.create({
+        name,
         username,
         email,
+        phone,
         password: hashedPassword
     });
 

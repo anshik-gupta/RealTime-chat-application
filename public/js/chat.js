@@ -6,6 +6,11 @@ let nextCursor = null;
 let hasMoreMessages = true;
 let loadingOlderMessages = false;
 const messagesContainer = document.getElementById("messages");
+const logoutForm = document.getElementById("logoutForm");
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+const chatUsersContainer = document.getElementById("chatUsersContainer");
+
 
 socket.on("connect", () => {
     console.log("Connected to server");
@@ -70,10 +75,33 @@ function sendMessage(){
     messageInput.value = "";
 }
 
+function increaseUnreadCount(conversationId){
+    const chat = document.querySelector(`.chat-user[data-conversation-id="${conversationId}"]`);
+
+    if(!chat){
+        return;
+    }
+
+    let unreadBadge = chat.querySelector(".unread-badge");
+
+    if(!unreadBadge){
+        unreadBadge = document.createElement("span");
+        unreadBadge.classList.add("unread-badge");
+        unreadBadge.textContent = "1";
+        chat.appendChild(unreadBadge);
+        return;
+    }
+
+    unreadBadge.textContent = Number(unreadBadge.textContent)+1;
+
+}
+
 socket.on("pendingMessages", (messages) => {
+    
     messages.forEach(message => {
         socket.emit("messageDelivered", message._id);
     });
+
 });
 
 socket.on("newMessage", (data) => {
@@ -96,8 +124,6 @@ socket.on("newMessage", (data) => {
     } else {
         if (data.conversationId === currentConversationId) {
             socket.emit("messageRead", data._id);
-        } else {
-            socket.emit("messageDelivered", data._id);
         }
     }
 
@@ -107,7 +133,7 @@ socket.on("newMessage", (data) => {
 const chatUsers = document.querySelectorAll(".chat-user");
 const emptyChat = document.getElementById("emptyChat");
 const chatArea = document.getElementById("chatArea");
-const chatUsername = document.getElementById("chatUsername");
+const chatName = document.getElementById("chatName");
 let currentChatUserId = null;
 let otherUserOnline = false;
 
@@ -115,70 +141,99 @@ chatUsers.forEach(user => {
     user.addEventListener("click", async () => {
 
         const userId = user.dataset.userId;
-        const username = user.querySelector("strong").textContent;
+        const name = user.querySelector("strong").textContent;
 
-        currentChatUserId = userId;
-
-        socket.emit("presenceCheck", userId);
-
-        // Get conversation
-        const conversationResponse =
-            await fetch(`/api/conversations/${userId}`);
-
-        const conversationData =
-            await conversationResponse.json();
-
-        if (!conversationResponse.ok) {
-            console.log(conversationData.message);
-            return;
-        }
-
-        currentUserId = conversationData.currentUserId;
-
-        const newConversationId = conversationData.conversationId;
-
-        console.log("conversationId:", newConversationId);
-
-        // Leave previous conversation
-        if (currentConversationId) {
-            socket.emit("leaveConversation", currentConversationId);
-        }
-
-        // Set new conversation
-        currentConversationId = newConversationId;
-
-        // Join new conversation
-        socket.emit("joinConversation", currentConversationId);
-
-        // Get messages
-        const messageResponse =
-            await fetch(`/api/messages/${currentConversationId}`);
-
-        const messageData =
-            await messageResponse.json();
-
-        if (!messageResponse.ok) {
-            console.log(messageData.message);
-            return;
-        }
-
-        nextCursor = messageData.nextCursor;
-        hasMoreMessages = messageData.hasMore;
-
-        displayMessages(messageData.messages);
-        socket.emit("messagesRead", currentConversationId);
-
-        // Show chat
-        emptyChat.classList.add("d-none");
-
-        chatArea.classList.remove("d-none");
-        chatArea.classList.add("d-flex");
-
-        chatUsername.textContent = username;
-
-        requestAnimationFrame(() => {messagesContainer.scrollTop = messagesContainer.scrollHeight;});
+        await openChat(userId, name);
     });
 });
+
+async function openChat(userId, name) {
+    currentChatUserId = userId;
+
+    socket.emit("presenceCheck", userId);
+
+    console.log("OPENING CHAT FOR:", userId);
+
+    const conversationResponse =
+        await fetch(`/api/conversations/${userId}`);
+
+    const conversationData =
+        await conversationResponse.json();
+
+    if (!conversationResponse.ok) {
+        console.log(conversationData.message);
+        return;
+    }
+
+    currentUserId = conversationData.currentUserId;
+
+    const newConversationId = conversationData.conversationId;
+
+    if (currentConversationId) {
+        socket.emit("leaveConversation", currentConversationId);
+    }
+
+    currentConversationId = newConversationId;
+
+    socket.emit("joinConversation", currentConversationId);
+
+    const messageResponse =
+        await fetch(`/api/messages/${currentConversationId}`);
+
+    const messageData =
+        await messageResponse.json();
+
+    if (!messageResponse.ok) {
+        console.log(messageData.message);
+        return;
+    }
+
+    nextCursor = messageData.nextCursor;
+    hasMoreMessages = messageData.hasMore;
+
+    displayMessages(messageData.messages);
+
+    let user = document.querySelector(`.chat-user[data-user-id="${userId}"]`)
+
+    if (!user) {
+        user = document.createElement("div");
+
+        user.classList.add("p-3", "border-bottom", "chat-user");
+
+        user.dataset.userId = userId;
+        user.dataset.conversationId = currentConversationId;
+
+        user.innerHTML = `
+            <strong>${name}</strong>
+        `;
+
+        chatUsersContainer.appendChild(user);
+
+        user.addEventListener("click", async ()=> {
+            await openChat(userId, name);
+        })
+    }
+
+    const unread_Badge = user.querySelector(".unread-badge");
+
+    if (unread_Badge) {
+        unread_Badge.remove();
+    }
+
+    socket.emit("messagesRead", currentConversationId);
+
+    emptyChat.classList.add("d-none");
+
+    chatArea.classList.remove("d-none");
+    chatArea.classList.add("d-flex");
+
+    chatName.textContent = name;
+
+    requestAnimationFrame(() => {
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+    });
+}
 
 let typeTimer;
 
@@ -194,6 +249,55 @@ messageInput.addEventListener("input", ()=>{
         socket.emit("stoppedTyping", currentConversationId);
     },1000);
 });
+
+searchInput.addEventListener("input", async () => {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        searchResults.innerHTML = "";
+        return;
+    }
+
+    const response = await fetch(
+        `/api/users/search?q=${encodeURIComponent(query)}`
+    );
+
+    const searchedUsers = await response.json();
+
+    searchResults.innerHTML = "";
+
+    searchedUsers.forEach(user=>{
+        const userElement = document.createElement("div");
+        userElement.classList.add("search-user");
+
+        userElement.innerHTML = `
+            <div class="search-user-content">
+                <div class="search-user-info">
+                    <div class="search-user-name">${user.name}</div>
+                    <div class="search-user-username">@${user.username}</div>
+                </div>
+
+                <div class="search-arrow">
+                    <i class="bi bi-arrow-up-right"></i>
+                </div>
+            </div>
+        `;
+        userElement.setAttribute("data-user-id", user._id);
+
+        searchResults.appendChild(userElement);
+
+        userElement.addEventListener("click", async () => {
+            await openChat(user._id, user.name);
+
+            searchInput.value = "";
+            searchResults.innerHTML = "";
+        });
+    });
+});
+
+logoutForm.addEventListener("submit", ()=>{
+    socket.disconnect();
+})
 
 function createMessageElement(message) {
     const messageWrapper = document.createElement("div");
@@ -345,6 +449,17 @@ socket.on("userOnline", (data) => {
 
     userPresence.classList.remove("text-muted");
     userPresence.classList.add("text-success");
+});
+
+socket.on("newMessageNotification", (data) => {
+
+    if (data.conversationId === currentConversationId) {
+        return;
+    }
+
+    increaseUnreadCount(data.conversationId);
+    socket.emit("messageDelivered", data.messageId);
+
 });
 
 socket.on("userOffline", (data) => {

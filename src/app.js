@@ -10,10 +10,11 @@ import cookieParser from "cookie-parser";
 //userMade imports
 import authRouter from "./routes/authRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
-import authMiddleware from "./middleware/authMiddleware.js";
-import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
 import conversationRouter from "./routes/apiRoutes/conversationRoutes.js";
 import messageRouter from "./routes/apiRoutes/messageRoutes.js";
+import userRouter from "./routes/apiRoutes/userRoutes.js";
+import authMiddleware from "./middleware/authMiddleware.js";
+import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
 import Message from "./models/messagesModel.js";
 import Conversation from "./models/conversationModel.js";
 
@@ -154,6 +155,17 @@ io.on("connection", async (socket) => {
                 status: newMessage.status,
                 createdAt: newMessage.createdAt 
             });
+
+            conv.participants.forEach(participant=>{
+                if(participant.toString() !== socket.userId.toString()){
+                    io.to(participant.toString()).emit("newMessageNotification", {
+                        conversationId: conversationId,
+                        messageId: newMessage._id
+                    });
+                }
+            });
+
+            
         } catch (error) {
             console.error("SEND MESSAGE ERROR:", error);
         }
@@ -278,9 +290,11 @@ io.on("connection", async (socket) => {
         });
     });
 
-    socket.on("disconnect", async () => {
-        console.log("A user disconnected:", socket.userId);
+    socket.on("disconnect", async (reason) => {
+        console.log("SOCKET DISCONNECTED:", socket.userId, reason);
+        
         const onlineCount = onlineUsers.get(socket.userId.toString());
+
         if (onlineCount <= 1) {
             onlineUsers.delete(socket.userId.toString());
             const conversations = await Conversation.find({
@@ -288,14 +302,14 @@ io.on("connection", async (socket) => {
             })
 
             conversations.forEach(conv => {
-            conv.participants.forEach(participant => {
-                if(participant.toString() !== socket.userId.toString()){
-                    io.to(participant.toString()).emit("userOffline", {
-                        userId: socket.userId.toString()
-                    });
-                }
+                conv.participants.forEach(participant => {
+                    if(participant.toString() !== socket.userId.toString()){
+                        io.to(participant.toString()).emit("userOffline", {
+                            userId: socket.userId.toString()
+                        });
+                    }
+                });
             });
-        });
         } else {
             onlineUsers.set(socket.userId.toString(), onlineCount - 1);
         }
@@ -310,6 +324,7 @@ app.use("/", authRouter);
 app.use("/chat", chatRouter);
 app.use("/api/conversations", conversationRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/users", userRouter);
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

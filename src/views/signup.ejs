@@ -68,6 +68,27 @@
 
                     <form action="/signup" method="POST" onsubmit="return validatePassword()">
 
+                        <!-- Name -->
+                        <div class="mb-3">
+
+                            <label for="name" class="form-label">
+                                Name
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+
+                                <input type="text" id="name" name="name" class="form-control"
+                                    placeholder="Enter your name" required>
+
+                            </div>
+
+                        </div>
+
+
                         <!-- Username -->
                         <div class="mb-3">
 
@@ -78,11 +99,11 @@
                             <div class="input-group">
 
                                 <span class="input-group-text">
-                                    <i class="bi bi-person"></i>
+                                    <i class="bi bi-at"></i>
                                 </span>
 
                                 <input type="text" id="username" name="username" class="form-control"
-                                    placeholder="Enter your username" required>
+                                    placeholder="Choose a username" required>
 
                             </div>
 
@@ -104,6 +125,27 @@
 
                                 <input type="email" id="email" name="email" class="form-control"
                                     placeholder="Enter your email" required>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+
+                            <label for="phone" class="form-label">
+                                Phone Number
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+
+                                <input type="tel" id="phone" name="phone" class="form-control"
+                                    placeholder="Enter your phone number" required>
 
                             </div>
 
@@ -154,8 +196,11 @@
 
                         <!-- Register Button -->
                         <button type="submit" class="btn register-btn w-100">
+
                             Create Account
+
                             <i class="bi bi-arrow-right ms-2"></i>
+
                         </button>
 
                     </form>

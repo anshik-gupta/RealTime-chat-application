@@ -5,3 +5,70 @@
   font-size: 11px;
   align-self: flex-end;
 }
+
+.search-user {
+  padding: 12px 14px;
+  margin-top: 6px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f8f7ff;
+  border: 1px solid #ece8ff;
+  transition: all 0.2s ease;
+}
+
+.search-user:hover {
+  background: #eeeaff;
+  transform: translateX(2px);
+}
+
+.search-user-content {
+  display: flex;
+  align-items: center;
+}
+
+.search-user-info {
+  flex: 1;
+}
+
+.search-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.search-user-username {
+  font-size: 12px;
+  color: #8a8a8a;
+  margin-top: 3px;
+}
+
+.search-arrow {
+  color: #8b5cf6;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+}
+
+.search-user:hover .search-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+.unread-badge {
+  float: right;
+
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+
+  border-radius: 50%;
+
+  background-color: #d0d005;
+  color: rgb(13, 3, 3);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

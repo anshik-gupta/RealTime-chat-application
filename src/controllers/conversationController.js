@@ -32,6 +32,7 @@ const getConversation = async (req, res) => {
             currentUserId: currentUserId,
             user: {
                 _id: otherUser._id,
+                name: otherUser.name,
                 username: otherUser.username
             }
         });
