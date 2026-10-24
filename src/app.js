@@ -13,6 +13,7 @@ import chatRouter from "./routes/chatRoutes.js";
 import conversationRouter from "./routes/apiRoutes/conversationRoutes.js";
 import messageRouter from "./routes/apiRoutes/messageRoutes.js";
 import userRouter from "./routes/apiRoutes/userRoutes.js";
+import imageRouter from "./routes/apiRoutes/imageRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
 import Message from "./models/messagesModel.js";
@@ -36,6 +37,7 @@ const PORT = 3000;
 const server = createServer(app);
 
 const io = new Server(server);
+app.set("io", io);
 
 io.use(socketAuthMiddleware);
 
@@ -325,6 +327,7 @@ app.use("/chat", chatRouter);
 app.use("/api/conversations", conversationRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/users", userRouter);
+app.use("/api/images", imageRouter);
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -14,10 +14,24 @@ const messageSchema = new mongoose.Schema(
             required: true
         },
 
+        type: {
+            type: String,
+            enum: ["text", "image"],
+            default: "text",
+            required: true
+        },
+
         text: {
             type: String,
-            required: true,
-            trim: true
+            trim: true,
+            required: function () {
+                return this.type === "text";
+            }
+        },
+
+        imageUrl: {
+            type: String,
+            default: null
         },
 
         status: {
@@ -25,7 +39,8 @@ const messageSchema = new mongoose.Schema(
             enum: ["sent", "delivered", "read"],
             default: "sent"
         }
-    },{
+    },
+    {
         timestamps: true,
         collection: "Messages"
     }

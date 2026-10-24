@@ -11,6 +11,10 @@ const searchInput = document.getElementById("searchInput");
 const searchResults = document.getElementById("searchResults");
 const chatUsersContainer = document.getElementById("chatUsersContainer");
 
+const imageModal = document.getElementById("imageModal");
+const enlargedImage = document.getElementById("enlargedImage");
+const closeImageModal = document.getElementById("closeImageModal");
+
 
 socket.on("connect", () => {
     console.log("Connected to server");
@@ -48,11 +52,86 @@ socket.on("messageStatusUpdated", (messageData)=>{
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 
-sendButton.addEventListener("click", sendMessage);
+const imageButton = document.getElementById("imageButton");
+const imageInput = document.getElementById("imageInput");
+const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+const imagePreview = document.getElementById("imagePreview");
+const removeImageButton = document.getElementById("removeImageButton");
 
-messageInput.addEventListener("keydown", (event)=>{
-    if(event.key==="Enter"){
+let selectedImage = null;
+let previewUrl = null;
+
+imageButton.addEventListener("click", () => {
+    if (!currentConversationId) {
+        alert("Please open a chat first.");
+        return;
+    }
+
+    imageInput.click();
+});
+
+imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        alert("Please select an image file.");
+        imageInput.value = "";
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("Image size must be 5 MB or less.");
+        imageInput.value = "";
+        return;
+    }
+
+    selectedImage = file;
+
+    if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+    }
+
+    messageInput.focus();
+
+    previewUrl = URL.createObjectURL(file);
+    imagePreview.src = previewUrl;
+    imagePreviewContainer.classList.remove("d-none");
+});
+
+removeImageButton.addEventListener("click", () => {
+    selectedImage = null;
+    imageInput.value = "";
+
+    if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    }
+
+    imagePreview.src = "";
+    imagePreviewContainer.classList.add("d-none");
+});
+
+sendButton.addEventListener("click", () => {
+    if (selectedImage) {
+        sendImage();
+    } else {
         sendMessage();
+    }
+});
+
+messageInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter"  && !event.shiftKey) {
+        event.preventDefault();
+
+        if (selectedImage) {
+            sendImage();
+        } else {
+            sendMessage();
+        }
     }
 });
 
@@ -73,6 +152,59 @@ function sendMessage(){
     });
 
     messageInput.value = "";
+}
+
+async function sendImage() {
+    if (!currentConversationId) {
+        alert("Please open a chat first.");
+        return;
+    }
+
+    if (!selectedImage) {
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("conversationId", currentConversationId);
+    formData.append("image", selectedImage);
+
+    sendButton.disabled = true;
+    imageButton.disabled = true;
+
+    try {
+        const response = await fetch("/api/images/upload", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Image upload failed.");
+            return;
+        }
+
+        // Clear the selected image after successful upload
+        selectedImage = null;
+        imageInput.value = "";
+
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+
+        imagePreview.src = "";
+        imagePreviewContainer.classList.add("d-none");
+
+    } catch (error) {
+        console.error("IMAGE UPLOAD ERROR:", error);
+        alert("Unable to upload image. Please try again.");
+    } finally {
+        sendButton.disabled = false;
+        imageButton.disabled = false;
+    }
 }
 
 function increaseUnreadCount(conversationId){
@@ -111,7 +243,9 @@ socket.on("newMessage", (data) => {
         sender: {
             _id: data.senderId
         },
-        text: data.message,
+        type: data.type || "text",
+        text: data.message || "",
+        imageUrl: data.imageUrl || null,
         status: data.status
     };
 
@@ -299,6 +433,25 @@ logoutForm.addEventListener("submit", ()=>{
     socket.disconnect();
 })
 
+function appendImage(messageElement, imageUrl) {
+    const imageElement = document.createElement("img");
+
+    imageElement.src = imageUrl;
+    imageElement.alt = "Shared image";
+    imageElement.classList.add("img-fluid", "rounded");
+
+    imageElement.style.maxWidth = "250px";
+    imageElement.style.maxHeight = "250px";
+    imageElement.style.objectFit = "contain";
+    imageElement.style.cursor = "pointer";
+
+    imageElement.addEventListener("click", () => {
+        openImageModal(imageElement.src);
+    });
+
+    messageElement.appendChild(imageElement);
+}
+
 function createMessageElement(message) {
     const messageWrapper = document.createElement("div");
     const messageElement = document.createElement("div");
@@ -328,7 +481,11 @@ function createMessageElement(message) {
         );
     }
 
-    messageElement.textContent = message.text;
+    if (message.type === "image" && message.imageUrl) {
+        appendImage(messageElement, message.imageUrl);
+    } else {
+        messageElement.textContent = message.text || "";
+    }
 
     messageWrapper.appendChild(messageElement);
 
@@ -434,6 +591,32 @@ function prependMessages(messages) {
         messagesContainer.prepend(messageWrapper);
     });
 }
+
+//Image Modal
+
+function openImageModal(imageUrl) {
+    enlargedImage.src = imageUrl;
+    imageModal.classList.remove("d-none");
+}
+
+function closeImageModalView() {
+    imageModal.classList.add("d-none");
+    enlargedImage.src = "";
+}
+
+closeImageModal.addEventListener("click", closeImageModalView);
+
+imageModal.addEventListener("click", (event) => {
+    if (event.target === imageModal) {
+        closeImageModalView();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !imageModal.classList.contains("d-none")) {
+        closeImageModalView();
+    }
+});
 
 const userPresence = document.getElementById("chatPresence");
 
