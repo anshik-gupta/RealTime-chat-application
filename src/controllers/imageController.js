@@ -1,5 +1,26 @@
 import Conversation from "../models/conversationModel.js";
 import Message from "../models/messagesModel.js";
+import cloudinary from "../config/cloudinary.js";
+
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: "realtime-chat-images",
+                resource_type: "image"
+            },
+            (error, result) => {
+                if (error) {
+                    return reject(error);
+                }
+
+                resolve(result);
+            }
+        );
+
+        stream.end(buffer);
+    });
+};
 
 const uploadImage = async (req, res) => {
     try {
@@ -32,8 +53,11 @@ const uploadImage = async (req, res) => {
             });
         }
 
-        // Create the public URL for the uploaded image
-        const imageUrl = `/uploads/${req.file.filename}`;
+        // Upload the image to Cloudinary
+        const uploadResult = await uploadToCloudinary(req.file.buffer);
+
+        // Get the permanent HTTPS image URL
+        const imageUrl = uploadResult.secure_url;
 
         // Save the image message in MongoDB
         const message = await Message.create({
@@ -72,7 +96,7 @@ const uploadImage = async (req, res) => {
         );
 
         // Notify the other participant
-        conversation.participants.forEach(participant => {
+        conversation.participants.forEach((participant) => {
             if (participant.toString() !== currentUser.toString()) {
                 io.to(participant.toString()).emit(
                     "newMessageNotification",
