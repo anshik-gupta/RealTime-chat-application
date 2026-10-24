@@ -1,5 +1,5 @@
 //core imports
-import dns from "dns";
+// import dns from "dns";
 import "dotenv/config";
 import connectDB from "./config/db.js";
 import express from "express";
@@ -19,7 +19,7 @@ import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
 import Message from "./models/messagesModel.js";
 import Conversation from "./models/conversationModel.js";
 
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+// dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 
@@ -30,9 +30,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-connectDB();
-
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const server = createServer(app);
 
@@ -329,6 +327,17 @@ app.use("/api/messages", messageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/images", imageRouter);
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+const startServer = async () => {
+    try {
+        await connectDB();
+
+        server.listen(PORT, "0.0.0.0", () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to start server:", error);
+        process.exit(1);
+    }
+};
+
+startServer();
