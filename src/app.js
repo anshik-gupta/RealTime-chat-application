@@ -1,5 +1,5 @@
-//core imports
-// import dns from "dns";
+// Core imports
+import dns from "dns";
 import "dotenv/config";
 import connectDB from "./config/db.js";
 import express from "express";
@@ -7,7 +7,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
 
-//userMade imports
+// User-made imports
 import authRouter from "./routes/authRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import conversationRouter from "./routes/apiRoutes/conversationRoutes.js";
@@ -16,10 +16,11 @@ import userRouter from "./routes/apiRoutes/userRoutes.js";
 import imageRouter from "./routes/apiRoutes/imageRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
+
 import Message from "./models/messagesModel.js";
 import Conversation from "./models/conversationModel.js";
 
-// dns.setServers(["8.8.8.8", "8.8.4.4"]);
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 
@@ -48,7 +49,7 @@ io.on("connection", async (socket) => {
 
     const onlineCount = onlineUsers.get(socket.userId.toString()) || 0;
 
-    onlineUsers.set(socket.userId.toString(), onlineCount+1);
+    onlineUsers.set(socket.userId.toString(), onlineCount + 1);
 
     const becameOnline = onlineCount === 0;
 
@@ -56,10 +57,10 @@ io.on("connection", async (socket) => {
         participants: socket.userId
     });
 
-    if(becameOnline){
+    if (becameOnline) {
         conversations.forEach(conv => {
             conv.participants.forEach(participant => {
-                if(participant.toString() !== socket.userId.toString()){
+                if (participant.toString() !== socket.userId.toString()) {
                     io.to(participant.toString()).emit("userOnline", {
                         userId: socket.userId.toString()
                     });
@@ -71,73 +72,34 @@ io.on("connection", async (socket) => {
     const conversationIds = conversations.map(conversation => conversation._id);
 
     const pendingMessages = await Message.find({
-        conversation: {$in: conversationIds},
-        sender: {$ne: socket.userId},
+        conversation: { $in: conversationIds },
+        sender: { $ne: socket.userId },
         status: "sent"
-    })
+    });
 
     socket.emit("pendingMessages", pendingMessages);
 
-    socket.on("messagesRead", async (conversationId)=>{
-        try{
+    socket.on("sendMessage", async (data) => {
+        try {
+            const { conversationId, message } = data;
+
+            if (typeof message !== "string") {
+                return;
+            }
+
+            const cleanMessage = message.trim();
+
+            if (cleanMessage === "") {
+                return;
+            }
+
+            // Check whether the user belongs to this conversation.
             const conv = await Conversation.findOne({
                 _id: conversationId,
                 participants: socket.userId
             });
 
             if (!conv) {
-                return;
-            }
-            
-            const messages = await Message.find({
-                conversation: conversationId,
-                sender: {$ne: socket.userId},
-                status: "delivered"
-            });
-            
-            await Message.updateMany(
-                {
-                    conversation: conversationId,
-                    sender: {$ne: socket.userId},
-                    status: "delivered"
-                },{
-                    $set: {status: "read"}
-                }
-            )
-
-            messages.forEach(message => {
-                io.to(message.sender.toString()).emit("messageStatusUpdated", {
-                    messageId: message._id,
-                    status: "read"
-                });
-            });
-            
-        }catch(error){
-            console.error(error);
-        }
-    });
-
-    socket.on("sendMessage", async (data) => {
-        try{
-            const {conversationId, message} = data;
-
-            if(typeof message !== "string"){
-                return;
-            }
-
-            const cleanMessage = message.trim();
-
-            if(cleanMessage===""){
-                return;
-            }
-
-            //checking the socket.userId exists in the conversation or not
-            const conv = await Conversation.findOne({
-                _id: conversationId,
-                participants: socket.userId
-            });
-
-            if(!conv){
                 return;
             }
 
@@ -153,11 +115,11 @@ io.on("connection", async (socket) => {
                 senderId: socket.userId,
                 message: newMessage.text,
                 status: newMessage.status,
-                createdAt: newMessage.createdAt 
+                createdAt: newMessage.createdAt
             });
 
-            conv.participants.forEach(participant=>{
-                if(participant.toString() !== socket.userId.toString()){
+            conv.participants.forEach(participant => {
+                if (participant.toString() !== socket.userId.toString()) {
                     io.to(participant.toString()).emit("newMessageNotification", {
                         conversationId: conversationId,
                         messageId: newMessage._id
@@ -165,23 +127,19 @@ io.on("connection", async (socket) => {
                 }
             });
 
-            
         } catch (error) {
             console.error("SEND MESSAGE ERROR:", error);
         }
     });
 
-    socket.on("messageDelivered", async (messageId)=>{
-        try{
+    // Mark a single message as delivered.
+    socket.on("messageDelivered", async (messageId) => {
+        try {
             const message = await Message.findOne({
                 _id: messageId
             });
 
-            if(!message){
-                return;
-            }
-
-            if(message.status !== "sent"){
+            if (!message) {
                 return;
             }
 
@@ -190,38 +148,54 @@ io.on("connection", async (socket) => {
                 participants: socket.userId
             });
 
-            if(!conv){
+            if (!conv) {
                 return;
             }
 
-            if(message.sender.toString() === socket.userId.toString()){
+            // A user cannot mark their own message as delivered.
+            if (message.sender.toString() === socket.userId.toString()) {
                 return;
             }
 
-            message.status = "delivered";
-            await message.save();
+            // Only "sent" messages can become "delivered".
+            // The status condition makes the update atomic.
+            const updatedMessage = await Message.findOneAndUpdate(
+                {
+                    _id: messageId,
+                    conversation: message.conversation,
+                    status: "sent",
+                    sender: { $ne: socket.userId }
+                },
+                {
+                    $set: { status: "delivered" }
+                },
+                {
+                    new: true
+                }
+            );
 
-            io.to(message.sender.toString()).emit("messageStatusUpdated", {
-                messageId: message._id,
-                status: message.status
+            if (!updatedMessage) {
+                return;
+            }
+
+            io.to(updatedMessage.sender.toString()).emit("messageStatusUpdated", {
+                messageId: updatedMessage._id,
+                status: updatedMessage.status
             });
 
-        }catch(error){
+        } catch (error) {
             console.error("MESSAGE DELIVERED ERROR:", error);
         }
     });
 
-    socket.on("messageRead", async (messageId)=>{
-        try{
+    // Mark a single message as read.
+    socket.on("messageRead", async (messageId) => {
+        try {
             const message = await Message.findOne({
                 _id: messageId
             });
 
-            if(!message){
-                return;
-            }
-
-            if(message.status !== "sent" && message.status !== "delivered"){
+            if (!message) {
                 return;
             }
 
@@ -230,37 +204,104 @@ io.on("connection", async (socket) => {
                 participants: socket.userId
             });
 
-            if(!conv){
+            if (!conv) {
                 return;
             }
 
-            if(message.sender.toString() === socket.userId.toString()){
+            // A user cannot mark their own message as read.
+            if (message.sender.toString() === socket.userId.toString()) {
                 return;
             }
 
-            message.status = "read";
-            await message.save();
+            // Only "sent" or "delivered" messages can become "read".
+            const updatedMessage = await Message.findOneAndUpdate(
+                {
+                    _id: messageId,
+                    conversation: message.conversation,
+                    status: { $in: ["sent", "delivered"] },
+                    sender: { $ne: socket.userId }
+                },
+                {
+                    $set: { status: "read" }
+                },
+                {
+                    new: true
+                }
+            );
 
-            io.to(message.sender.toString()).emit("messageStatusUpdated", {
-                messageId: message._id,
-                status: message.status
+            if (!updatedMessage) {
+                return;
+            }
+
+            io.to(updatedMessage.sender.toString()).emit("messageStatusUpdated", {
+                messageId: updatedMessage._id,
+                status: updatedMessage.status
             });
 
-        }catch(error){
+        } catch (error) {
             console.error("MESSAGE READ ERROR:", error);
         }
     });
 
-    socket.on("joinConversation", async (conversationId) => {
-
-        const conv = await Conversation.findOne({
+    // Mark all eligible incoming messages in a conversation as read.
+    socket.on("messagesRead", async (conversationId) => {
+        try {
+            const conv = await Conversation.findOne({
                 _id: conversationId,
                 participants: socket.userId
             });
 
-            if(!conv){
+            if (!conv) {
                 return;
             }
+
+            const messages = await Message.find({
+                conversation: conversationId,
+                sender: { $ne: socket.userId },
+                status: { $in: ["sent", "delivered"] }
+            }).select("_id sender");
+
+            for (const message of messages) {
+                // Update each message atomically.
+                // A concurrent update cannot change "read" back to an
+                // earlier status, and an unchanged message sends no event.
+                const updatedMessage = await Message.findOneAndUpdate(
+                    {
+                        _id: message._id,
+                        conversation: conversationId,
+                        sender: { $ne: socket.userId },
+                        status: { $in: ["sent", "delivered"] }
+                    },
+                    {
+                        $set: { status: "read" }
+                    },
+                    {
+                        new: true
+                    }
+                );
+
+                if (updatedMessage) {
+                    io.to(updatedMessage.sender.toString()).emit("messageStatusUpdated", {
+                        messageId: updatedMessage._id,
+                        status: updatedMessage.status
+                    });
+                }
+            }
+
+        } catch (error) {
+            console.error("MESSAGES READ ERROR:", error);
+        }
+    });
+
+    socket.on("joinConversation", async (conversationId) => {
+        const conv = await Conversation.findOne({
+            _id: conversationId,
+            participants: socket.userId
+        });
+
+        if (!conv) {
+            return;
+        }
 
         socket.join(conversationId);
     });
@@ -270,7 +311,7 @@ io.on("connection", async (socket) => {
     });
 
     socket.on("presenceCheck", (userId) => {
-    const isOnline = onlineUsers.has(userId.toString());
+        const isOnline = onlineUsers.has(userId.toString());
 
         socket.emit("presenceStatus", {
             userId: userId,
@@ -278,38 +319,68 @@ io.on("connection", async (socket) => {
         });
     });
 
-    socket.on("startTyping", (conversationId)=>{
-        socket.to(conversationId).emit("userTyping", {
-            userId: socket.userId.toString()
-        });
+    socket.on("startTyping", async (conversationId) => {
+        try {
+            const conStaTy = await Conversation.findOne({
+                _id: conversationId,
+                participants: socket.userId
+            });
+
+            if (!conStaTy) {
+                return;
+            }
+
+            socket.to(conversationId).emit("userTyping", {
+                userId: socket.userId.toString()
+            });
+
+        } catch (error) {
+            console.error("START TYPING ERROR:", error);
+        }
     });
 
-    socket.on("stoppedTyping", (conversationId)=>{
-        socket.to(conversationId).emit("userStoppedTyping", {
-            userId: socket.userId.toString()
-        });
+    socket.on("stoppedTyping", async (conversationId) => {
+        try {
+            const conStoTy = await Conversation.findOne({
+                _id: conversationId,
+                participants: socket.userId
+            });
+
+            if (!conStoTy) {
+                return;
+            }
+
+            socket.to(conversationId).emit("userStoppedTyping", {
+                userId: socket.userId.toString()
+            });
+
+        } catch (error) {
+            console.error("STOPPED TYPING ERROR:", error);
+        }
     });
 
     socket.on("disconnect", async (reason) => {
         console.log("SOCKET DISCONNECTED:", socket.userId, reason);
-        
+
         const onlineCount = onlineUsers.get(socket.userId.toString());
 
         if (onlineCount <= 1) {
             onlineUsers.delete(socket.userId.toString());
+
             const conversations = await Conversation.find({
                 participants: socket.userId
-            })
+            });
 
             conversations.forEach(conv => {
                 conv.participants.forEach(participant => {
-                    if(participant.toString() !== socket.userId.toString()){
+                    if (participant.toString() !== socket.userId.toString()) {
                         io.to(participant.toString()).emit("userOffline", {
                             userId: socket.userId.toString()
                         });
                     }
                 });
             });
+
         } else {
             onlineUsers.set(socket.userId.toString(), onlineCount - 1);
         }
@@ -334,6 +405,7 @@ const startServer = async () => {
         server.listen(PORT, "0.0.0.0", () => {
             console.log(`Server running on port ${PORT}`);
         });
+
     } catch (error) {
         console.error("Failed to start server:", error);
         process.exit(1);

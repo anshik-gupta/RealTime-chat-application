@@ -7,37 +7,87 @@ const getSignupController = (req, res, next) => {
 };
 
 const postSignupController = async (req, res, next) => {
+    try {
+        let { name, username, email, phone, password, confirmPassword } = req.body;
 
-    const { name, username, email, phone, password, confirmPassword } = req.body;
+        // 1. Check that all required fields are provided
+        if (!name || !username || !email || !phone || !password || !confirmPassword) {
+            return res.status(400).send("All fields are required");
+        }
 
-    if (password !== confirmPassword) {
-        return res.status(400).send("Passwords do not match");
-    }
+        // 2. Normalize input
+        name = name.trim();
+        username = username.trim();
+        email = email.trim().toLowerCase();
+        phone = phone.trim();
 
-    const existingUser = await User.findOne({
-        $or: [
-            { email },
-            { username },
-            { phone }
-        ]
-    });
+        // 3. Validate required fields after trimming
+        if (!name || !username || !email || !phone) {
+            return res.status(400).send("Fields cannot contain only spaces");
+        }
 
-    if (existingUser) {
+        // 4. Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).send("Please enter a valid email address");
+        }
+
+        // 5. Validate password length
+        if (password.length < 8) {
+            return res.status(400).send("Password must be at least 8 characters long");
+        }
+
+        // 6. Check password confirmation
+        if (password !== confirmPassword) {
+            return res.status(400).send("Passwords do not match");
+        }
+
+        // 7. Check whether the email, username, or phone already exists
+        const existingUser = await User.findOne({
+            $or: [
+                { email },
+                { username },
+                { phone }
+            ]
+        });
+
+        if (existingUser) {
+            if (existingUser.email === email) {
+                return res.status(409).send("Email is already registered");
+            }
+
+            if (existingUser.username === username) {
+                return res.status(409).send("Username is already taken");
+            }
+
+            return res.status(409).send("Phone number is already registered");
+        }
+
+        // 8. Hash the password
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        // 9. Create the account
+        await User.create({
+            name,
+            username,
+            email,
+            phone,
+            password: hashedPassword
+        });
+
         return res.redirect("/login");
-    }   
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    } catch (error) {
+        // 10. Handle duplicate-key errors caused by simultaneous requests
+        if (error.code === 11000) {
+            return res.status(409).send("Email, username, or phone number is already registered");
+        }
 
-    await User.create({
-        name,
-        username,
-        email,
-        phone,
-        password: hashedPassword
-    });
-
-    return res.redirect("/login");
-
+        // 11. Handle unexpected errors
+        console.error("SIGNUP ERROR:", error);
+        return res.status(500).send("Something went wrong. Please try again later");
+    }
 };
 
 const getLoginController = (req, res, next) => {

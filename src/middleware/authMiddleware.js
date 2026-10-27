@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
 
     if (!token) {
@@ -10,10 +11,18 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        req.userId = decoded.userId;
+        const user = await User.findById(decoded.userId).select("_id");
+
+        if (!user) {
+            res.clearCookie("token");
+            return res.redirect("/login");
+        }
+
+        req.userId = user._id.toString();
 
         next();
     } catch (error) {
+        res.clearCookie("token");
         return res.redirect("/login");
     }
 };

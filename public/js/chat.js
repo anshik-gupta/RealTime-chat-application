@@ -337,15 +337,16 @@ async function openChat(userId, name) {
         user.dataset.userId = userId;
         user.dataset.conversationId = currentConversationId;
 
-        user.innerHTML = `
-            <strong>${name}</strong>
-        `;
+        const userName = document.createElement("strong");
+        userName.textContent = name;
+
+        user.appendChild(userName);
 
         chatUsersContainer.appendChild(user);
 
-        user.addEventListener("click", async ()=> {
+        user.addEventListener("click", async () => {
             await openChat(userId, name);
-        })
+        });
     }
 
     const unread_Badge = user.querySelector(".unread-badge");
@@ -404,19 +405,37 @@ searchInput.addEventListener("input", async () => {
         const userElement = document.createElement("div");
         userElement.classList.add("search-user");
 
-        userElement.innerHTML = `
-            <div class="search-user-content">
-                <div class="search-user-info">
-                    <div class="search-user-name">${user.name}</div>
-                    <div class="search-user-username">@${user.username}</div>
-                </div>
+        const content = document.createElement("div");
+        content.classList.add("search-user-content");
 
-                <div class="search-arrow">
-                    <i class="bi bi-arrow-up-right"></i>
-                </div>
-            </div>
-        `;
-        userElement.setAttribute("data-user-id", user._id);
+        const userInfo = document.createElement("div");
+        userInfo.classList.add("search-user-info");
+
+        const userName = document.createElement("div");
+        userName.classList.add("search-user-name");
+        userName.textContent = user.name;
+
+        const userUsername = document.createElement("div");
+        userUsername.classList.add("search-user-username");
+        userUsername.textContent = `@${user.username}`;
+
+        const arrow = document.createElement("div");
+        arrow.classList.add("search-arrow");
+
+        const icon = document.createElement("i");
+        icon.classList.add("bi", "bi-arrow-up-right");
+
+        userInfo.appendChild(userName);
+        userInfo.appendChild(userUsername);
+
+        arrow.appendChild(icon);
+
+        content.appendChild(userInfo);
+        content.appendChild(arrow);
+
+        userElement.appendChild(content);
+
+        userElement.dataset.userId = user._id;
 
         searchResults.appendChild(userElement);
 

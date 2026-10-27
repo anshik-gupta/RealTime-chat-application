@@ -3,8 +3,15 @@ import User from "../models/userModel.js";
 
 const getConversation = async (req, res) => {
     try {
-        const currentUserId = req.userId;
+        const currentUserId = req.userId.toString();
         const otherUserId = req.params.userId;
+
+        // Prevent users from starting a conversation with themselves.
+        if (currentUserId === otherUserId) {
+            return res.status(400).json({
+                message: "You cannot create a conversation with yourself"
+            });
+        }
 
         const otherUser = await User.findById(otherUserId);
 
@@ -14,12 +21,7 @@ const getConversation = async (req, res) => {
             });
         }
 
-        let conversation = await Conversation.findOne({
-            participants: {
-                $all: [currentUserId, otherUserId],
-                $size: 2
-            }
-        });
+        let conversation = await Conversation.findOne({ participants: { $all: [currentUserId, otherUserId], $size: 2 } });
 
         if (!conversation) {
             conversation = await Conversation.create({

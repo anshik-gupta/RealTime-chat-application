@@ -1,24 +1,36 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-const socketAuthMiddleware = (socket, next) => {
+const socketAuthMiddleware = async (socket, next) => {
     const cookiesHeader = socket.handshake.headers.cookie || "";
 
-    const cookieToken = cookiesHeader.split("; ").find(cookie=> cookie.startsWith("token="));
+    const cookieToken = cookiesHeader
+        .split("; ")
+        .find(cookie => cookie.startsWith("token="));
 
     const token = cookieToken?.split("=")[1];
 
-    if(!token){
+    if (!token) {
         return next(new Error("Authentication required"));
     }
 
-    try{
+    try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        socket.userId = decoded.userId;
+
+        const user = await User.findById(decoded.userId).select("_id");
+
+        if (!user) {
+            return next(new Error("Account no longer exists"));
+        }
+
+        socket.userId = user._id.toString();
+
         next();
+    } catch (error) {
+        console.error("SOCKET AUTH ERROR:", error);
+
+        return next(new Error("Authentication failed"));
     }
-    catch(error){
-        return next(new Error("Invalid or expired token"));
-    }
-}
+};
 
 export default socketAuthMiddleware;
