@@ -96,8 +96,9 @@ const getLoginController = (req, res, next) => {
 
 const postLoginController = async (req, res, next) => {
     const {email, password} = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({normalizedEmail});
 
     if(!user){
         return res.status(400).send("Invalid email or password");
@@ -117,6 +118,8 @@ const postLoginController = async (req, res, next) => {
 
     res.cookie("token", token, {
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 7* 24* 60* 60* 1000
     });
 

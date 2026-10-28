@@ -34,19 +34,33 @@ const getMessages = async (req, res, next) => {
                 });
             }
 
-            query.createdAt = {
-                $lt: cursorMessage.createdAt
-            };
+            query.$or = [
+                {
+                    createdAt: {
+                        $lt: cursorMessage.createdAt
+                    }
+                },
+                {
+                    createdAt: cursorMessage.createdAt,
+                    _id: {
+                        $lt: cursorMessage._id
+                    }
+                }
+            ];
         }
 
         const messages = await Message.find(query)
             .populate("sender", "name")
-            .sort({ createdAt: -1 })
-            .limit(20);
+            .sort({ createdAt: -1, _id: -1})
+            .limit(21);
+
+        const hasMore = messages.length > 20;
+
+        if (hasMore) {
+            messages.pop();
+        }
 
         messages.reverse();
-
-        const hasMore = messages.length === 20;
 
         const nextCursor = messages.length > 0 ? messages[0]._id : null;
 
