@@ -98,7 +98,7 @@ const postLoginController = async (req, res, next) => {
     const {email, password} = req.body;
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({normalizedEmail});
+    const user = await User.findOne({email:normalizedEmail});
 
     if(!user){
         return res.status(400).send("Invalid email or password");

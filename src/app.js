@@ -170,7 +170,7 @@ io.on("connection", async (socket) => {
                     $set: { status: "delivered" }
                 },
                 {
-                    new: true
+                    returnDocument: "after"
                 }
             );
 
@@ -225,7 +225,7 @@ io.on("connection", async (socket) => {
                     $set: { status: "read" }
                 },
                 {
-                    new: true
+                    returnDocument: "after"
                 }
             );
 
@@ -276,7 +276,7 @@ io.on("connection", async (socket) => {
                         $set: { status: "read" }
                     },
                     {
-                        new: true
+                        returnDocument: "after"
                     }
                 );
 

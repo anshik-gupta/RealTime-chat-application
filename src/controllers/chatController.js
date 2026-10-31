@@ -14,6 +14,10 @@ const getChat = async (req, res, next) => {
                 user => user._id.toString() !== req.userId.toString()
             );
 
+            if(!user){
+                return null;
+            }
+
             const unreadCount = await Message.countDocuments({
                 conversation: conversation._id,
                 sender: {$ne: req.userId},
@@ -29,7 +33,7 @@ const getChat = async (req, res, next) => {
     );
 
     res.render("home",{
-        users
+        users: users.filter(Boolean)
     });
 }
 
