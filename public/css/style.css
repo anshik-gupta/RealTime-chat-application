@@ -121,3 +121,41 @@
   outline: none;
   box-shadow: none;
 }
+
+.message-menu-container {
+  align-self: center;
+  margin: 0 4px;
+}
+
+.message-menu-button {
+  color: #777;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  padding: 4px 7px;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+}
+
+.message-wrapper:hover .message-menu-button,
+.message-menu-container:focus-within .message-menu-button {
+  opacity: 1;
+  visibility: visible;
+}
+
+.message-menu-button:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.message-menu-container .dropdown-menu {
+  min-width: 190px;
+  padding: 6px;
+}
+
+.message-menu-container .dropdown-item {
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}

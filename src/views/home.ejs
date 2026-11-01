@@ -136,15 +136,40 @@
                 <div id="chatArea" class="d-none flex-column h-100">
             
                     <!-- Chat Header -->
-                    <div class="p-3 border-bottom">
-            
-                        <strong id="chatName"></strong>
-            
-                        <small id="chatPresence" class="d-block text-muted">
-                            ○ Offline
-                        </small>
-            
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+
+                        <!-- Username and Presence -->
+                        <div>
+                            <strong id="chatName"></strong>
+
+                            <small id="chatPresence" class="d-block text-muted">
+                                ○ Offline
+                            </small>
+                        </div>
+
+                        <!-- Chat Options Dropdown -->
+                        <div class="dropdown" id="chatOptionsDropdown">
+
+                            <button class="btn btn-light border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="Chat options">
+                                <i class="bi bi-three-dots-vertical fs-5"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+
+                                <li>
+                                    <button class="dropdown-item" type="button" id="clearChatButton">
+                                        <i class="bi bi-trash3 me-2"></i>
+                                        Clear chat
+                                    </button>
+                                </li>
+
+                            </ul>
+
+                        </div>
+
                     </div>
+
             
             
                     <!-- Messages -->

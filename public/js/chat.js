@@ -10,6 +10,7 @@ const logoutForm = document.getElementById("logoutForm");
 const searchInput = document.getElementById("searchInput");
 const searchResults = document.getElementById("searchResults");
 const chatUsersContainer = document.getElementById("chatUsersContainer");
+const clearChatButton = document.getElementById("clearChatButton");
 
 const imageModal = document.getElementById("imageModal");
 const enlargedImage = document.getElementById("enlargedImage");
@@ -471,14 +472,127 @@ function appendImage(messageElement, imageUrl) {
     messageElement.appendChild(imageElement);
 }
 
+
+async function performMessageDeletion(messageId, deleteType, messageWrapper) {
+    const confirmationMessage =
+        deleteType === "me"
+            ? "Delete this message for yourself?"
+            : "Delete this message for everyone?";
+
+    if (!confirm(confirmationMessage)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/messages/${messageId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                deleteType: deleteType
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to delete message");
+        }
+
+        // Remove the message from the current user's UI
+        messageWrapper.remove();
+
+    } catch (error) {
+        console.error("Message deletion error:", error);
+        alert(error.message || "Something went wrong while deleting the message.");
+    }
+}
+
+clearChatButton.addEventListener("click", clearChat);
+
+
+async function clearChat() {
+    if (!currentConversationId) {
+        return;
+    }
+
+    const confirmClear = confirm(
+        "Are you sure you want to clear this chat? This will only affect your account."
+    );
+
+    if (!confirmClear) {
+        return;
+    }
+
+    clearChatButton.disabled = true;
+
+    try {
+        const response = await fetch(
+            `/api/messages/conversation/${currentConversationId}/clear`,
+            {
+                method: "DELETE",
+                credentials: "same-origin"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to clear chat");
+        }
+
+        messagesContainer.innerHTML = "";
+
+        // Reset message pagination
+        nextCursor = null;
+        hasMoreMessages = false;
+
+    } catch (error) {
+        console.error("Clear chat error:", error);
+        alert(error.message || "Unable to clear chat.");
+
+    } finally {
+        clearChatButton.disabled = false;
+    }
+}
+
+
+socket.on("messageDeleted", (data) => {
+    // Ignore events belonging to another conversation
+    if (data.conversationId !== currentConversationId) {
+        return;
+    }
+    
+    //this messageWrapper is not the general messageWrapper, i am just naming the specific message that is to be deleted in the event 
+    const messageWrapper = messagesContainer.querySelector(
+        `[data-message-id="${data.messageId}"]`
+    );
+
+    if (messageWrapper) {
+        messageWrapper.remove();
+    }
+});
+
+
 function createMessageElement(message) {
     const messageWrapper = document.createElement("div");
     const messageElement = document.createElement("div");
 
-    messageWrapper.classList.add("mb-2", "d-flex");
+    const isOwnMessage = message.sender._id === currentUserId;
+
+    messageWrapper.classList.add(
+        "mb-2",
+        "d-flex",
+        "align-items-start",
+        "message-wrapper"
+    );
+
     messageWrapper.dataset.messageId = message._id;
 
-    if (message.sender._id === currentUserId) {
+    // Message alignment and styling
+    if (isOwnMessage) {
         messageWrapper.classList.add("justify-content-end");
 
         messageElement.classList.add(
@@ -500,15 +614,106 @@ function createMessageElement(message) {
         );
     }
 
+    // Render message content
     if (message.type === "image" && message.imageUrl) {
         appendImage(messageElement, message.imageUrl);
     } else {
         messageElement.textContent = message.text || "";
     }
 
-    messageWrapper.appendChild(messageElement);
+    // Create Bootstrap dropdown
+    const menuContainer = document.createElement("div");
+    menuContainer.classList.add(
+        "dropdown",
+        "message-menu-container"
+    );
 
-    if (message.sender._id === currentUserId) {
+    const menuButton = document.createElement("button");
+    menuButton.type = "button";
+
+    menuButton.classList.add(
+        "btn",
+        "btn-sm",
+        "border-0",
+        "message-menu-button"
+    );
+
+    menuButton.setAttribute("data-bs-toggle", "dropdown");
+    menuButton.setAttribute("aria-expanded", "false");
+    menuButton.setAttribute("aria-label", "Message options");
+
+    menuButton.innerHTML = `
+        <i class="bi bi-three-dots-vertical"></i>
+    `;
+
+    const dropdown = document.createElement("ul");
+    dropdown.classList.add(
+        "dropdown-menu",
+        "shadow",
+        "border-0",
+        "rounded-3"
+    );
+
+    // Delete for me
+    const deleteForMeItem = document.createElement("li");
+
+    const deleteForMeButton = document.createElement("button");
+    deleteForMeButton.type = "button";
+    deleteForMeButton.classList.add("dropdown-item");
+
+    deleteForMeButton.innerHTML = `
+        <i class="bi bi-trash me-2"></i>
+        Delete for me
+    `;
+
+    deleteForMeItem.appendChild(deleteForMeButton);
+    dropdown.appendChild(deleteForMeItem);
+
+    deleteForMeButton.addEventListener("click", () => {
+        performMessageDeletion(message._id, "me", messageWrapper);
+    });
+
+    // Delete for everyone (only own messages)
+    if (isOwnMessage) {
+        const deleteForEveryoneItem = document.createElement("li");
+
+        const deleteForEveryoneButton = document.createElement("button");
+        deleteForEveryoneButton.type = "button";
+
+        deleteForEveryoneButton.classList.add(
+            "dropdown-item",
+            "text-danger"
+        );
+
+        deleteForEveryoneButton.innerHTML = `
+            <i class="bi bi-trash3 me-2"></i>
+            Delete for everyone
+        `;
+
+        deleteForEveryoneItem.appendChild(deleteForEveryoneButton);
+        dropdown.appendChild(deleteForEveryoneItem);
+
+        deleteForEveryoneButton.addEventListener("click", () => {
+            performMessageDeletion(message._id, "everyone", messageWrapper);
+        });
+    }
+
+    menuContainer.appendChild(menuButton);
+    menuContainer.appendChild(dropdown);
+
+    // Arrange menu and message
+    if (isOwnMessage) {
+        // Own message: menu on the left
+        messageWrapper.appendChild(menuContainer);
+        messageWrapper.appendChild(messageElement);
+    } else {
+        // Other user's message: menu on the right
+        messageWrapper.appendChild(messageElement);
+        messageWrapper.appendChild(menuContainer);
+    }
+
+    // Message status (only for own messages)
+    if (isOwnMessage) {
         const statusElement = document.createElement("span");
 
         statusElement.classList.add("ms-1", "message-status");
@@ -529,6 +734,7 @@ function createMessageElement(message) {
 
     return messageWrapper;
 }
+
 
 function displayMessages(messages) {
     messagesContainer.innerHTML = "";

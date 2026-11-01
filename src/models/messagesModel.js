@@ -34,11 +34,21 @@ const messageSchema = new mongoose.Schema(
             default: null
         },
 
+        imagePublicId: {
+            type: String,
+            default: null
+        },
+
         status: {
             type: String,
             enum: ["sent", "delivered", "read"],
             default: "sent"
-        }
+        },
+
+        deletedFor: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }]
     },
     {
         timestamps: true,

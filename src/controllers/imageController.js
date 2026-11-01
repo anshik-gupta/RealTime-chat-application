@@ -58,13 +58,15 @@ const uploadImage = async (req, res) => {
 
         // Get the permanent HTTPS image URL
         const imageUrl = uploadResult.secure_url;
+        const imagePublicId = uploadResult.public_id;
 
         // Save the image message in MongoDB
         const message = await Message.create({
             conversation: conversationId,
             sender: currentUser,
             type: "image",
-            imageUrl
+            imageUrl,
+            imagePublicId
         });
 
         // Get the existing Socket.IO instance
