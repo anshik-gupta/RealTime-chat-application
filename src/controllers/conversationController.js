@@ -1,3 +1,4 @@
+
 import Conversation from "../models/conversationModel.js";
 import User from "../models/userModel.js";
 
@@ -21,12 +22,34 @@ const getConversation = async (req, res) => {
             });
         }
 
-        let conversation = await Conversation.findOne({ participants: { $all: [currentUserId, otherUserId], $size: 2 } });
+        // Normalize participant IDs to create a consistent pair.
+        const participants = [
+            currentUserId,
+            otherUserId
+        ].sort();
 
-        if (!conversation) {
+        const participantPair = participants.join("_");
+
+        let conversation;
+
+        try {
             conversation = await Conversation.create({
-                participants: [currentUserId, otherUserId]
+                participants,
+                participantPair
             });
+        } catch (error) {
+            // Another request may have created this conversation.
+            if (error.code === 11000) {
+                conversation = await Conversation.findOne({
+                    participantPair
+                });
+
+                if (!conversation) {
+                    throw error;
+                }
+            } else {
+                throw error;
+            }
         }
 
         return res.json({

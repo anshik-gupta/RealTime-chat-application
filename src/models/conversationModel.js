@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const conversationSchema = new mongoose.Schema(
@@ -8,7 +9,13 @@ const conversationSchema = new mongoose.Schema(
                 ref: "User",
                 required: true
             }
-        ]
+        ],
+
+        participantPair: {
+            type: String,
+            required: true,
+            unique: true
+        }
     },
     {
         timestamps: true,
