@@ -5,140 +5,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Login - Chatly</title>
+    <title>Login - Chattr</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/signup.css">
+    <!-- Login CSS -->
+    <link rel="stylesheet" href="/css/login.css">
 </head>
 
 <body class="auth-page">
 
-    <div class="container-fluid min-vh-100">
+    <main class="login-layout">
 
-        <div class="row min-vh-100">
+        <!-- Illustration Section -->
+        <section class="illustration-section">
 
-            <!-- Left Side -->
-            <div class="col-lg-6 d-none d-lg-flex auth-brand-section">
+            <div class="illustration-overlay">
 
-                <div class="brand-content">
+                <div class="brand-logo">
+                    <i class="bi bi-chat-heart-fill"></i>
+                    <span>Chattr</span>
+                </div>
 
-                    <div class="brand-logo">
+                <div class="illustration-content">
+
+                    <h1>
+                        Talk.
+                        <span>Connect.</span>
+                        Stay close.
+                    </h1>
+
+                    <p>
+                        Your conversations, your people,
+                        your little corner of the internet.
+                    </p>
+
+                </div>
+
+                <div class="illustration-image">
+
+                    <img src="/images/login-illustration-dark.png" alt="People connecting and chatting">
+
+                </div>
+
+                <div class="illustration-footer">
+                    Made for conversations that matter.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Login Section -->
+        <section class="login-section">
+
+            <div class="login-card">
+
+                <!-- Mobile Brand -->
+                <div class="mobile-brand">
+
+                    <div class="mobile-brand-icon">
                         <i class="bi bi-chat-heart-fill"></i>
                     </div>
 
-                    <h1>Chattr</h1>
+                    <span>Chattr</span>
+
+                </div>
+
+
+                <!-- Header -->
+                <div class="login-header">
+
+                    <h2>Welcome Back</h2>
 
                     <p>
-                        Talk. Connect. Stay close.
+                        Login to continue chatting
                     </p>
 
-                    <div class="brand-decoration">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                </div>
+
+
+                <!-- Login Form -->
+                <form action="/login" method="POST" class="login-form">
+
+                    <!-- Email -->
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-envelope input-icon"></i>
+
+                            <input type="email" id="email" name="email" placeholder="Enter your email"
+                                autocomplete="email" required>
+
+                        </div>
+
                     </div>
+
+
+                    <!-- Password -->
+                    <div class="form-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="input-wrapper password-wrapper">
+
+                            <i class="bi bi-lock input-icon"></i>
+
+                            <input type="password" id="password" name="password" placeholder="Enter your password"
+                                autocomplete="current-password" required>
+
+                            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password"
+                                aria-pressed="false">
+
+                                <i class="bi bi-eye"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Login Button -->
+                    <button type="submit" class="login-btn">
+
+                        <span>Login</span>
+
+                        <i class="bi bi-arrow-right"></i>
+
+                    </button>
+
+                </form>
+
+
+                <!-- Signup -->
+                <div class="signup-section">
+
+                    <span>
+                        Don't have an account?
+                    </span>
+
+                    <a href="/signup">
+                        Create Account
+                    </a>
+
+                </div>
+
+
+                <!-- Footer -->
+                <div class="login-footer">
+
+                    <span>
+                        Chattr · Talk. Connect. Stay close.
+                    </span>
 
                 </div>
 
             </div>
 
+        </section>
 
-            <!-- Right Side -->
-            <div class="col-lg-6 d-flex align-items-center justify-content-center">
-
-                <div class="auth-card">
-
-                    <div class="text-center mb-4">
-
-                        <div class="mobile-logo">
-                            <i class="bi bi-chat-heart-fill"></i>
-                        </div>
-
-                        <h2>Welcome Back</h2>
-
-                        <p class="text-muted">
-                            Login to continue chatting
-                        </p>
-
-                    </div>
+    </main>
 
 
-                    <form action="/login" method="POST">
-
-                        <!-- Email -->
-                        <div class="mb-3">
-
-                            <label for="email" class="form-label">
-                                Email
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-envelope"></i>
-                                </span>
-
-                                <input type="email" id="email" name="email" class="form-control"
-                                    placeholder="Enter your email" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Password -->
-                        <div class="mb-4">
-
-                            <label for="password" class="form-label">
-                                Password
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-lock"></i>
-                                </span>
-
-                                <input type="password" id="password" name="password" class="form-control"
-                                    placeholder="Enter your password" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Login Button -->
-                        <button type="submit" class="btn register-btn w-100">
-                            Login
-                            <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-
-                    </form>
-
-
-                    <!-- Register -->
-                    <div class="text-center mt-4">
-
-                        <span class="text-muted">
-                            Don't have an account?
-                        </span>
-
-                        <a href="/signup" class="login-link">
-                            Create Account
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
+    <!-- Login JavaScript -->
+    <script src="/js/login.js"></script>
 
 </body>
 

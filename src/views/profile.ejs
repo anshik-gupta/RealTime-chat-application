@@ -5,128 +5,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Profile - Chatly</title>
+    <title>Profile - Chattr</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <!-- Profile CSS -->
+    <link rel="stylesheet" href="/css/profile.css">
 </head>
 
-<body class="bg-light">
+<body>
 
-    <div class="container py-5">
+    <div class="profile-container">
 
-        <div class="row justify-content-center">
+        <div class="profile-card">
 
-            <div class="col-md-6 col-lg-5">
+            <!-- Profile Header -->
+            <div class="profile-header">
 
-                <div class="card shadow-sm border-0">
+                <div class="profile-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
 
-                    <!-- Header -->
-                    <div class="card-body text-center">
+                <h2 class="profile-name">
+                    <%= user.name %>
+                </h2>
 
-                        <i class="bi bi-person-circle display-1 text-primary"></i>
+                <p class="profile-username">
+                    @<%= user.username %>
+                </p>
 
-                        <h3 class="mt-3 mb-0">
-                            <%= user.name %>
-                        </h3>
+            </div>
 
-                        <p class="text-muted mb-0">
-                            @<%= user.username %>
-                        </p>
+            <!-- Profile Information -->
+            <div class="profile-information">
 
-                    </div>
+                <h5 class="section-title">
+                    Account Information
+                </h5>
 
+                <!-- Name -->
+                <div class="profile-field">
 
-                    <!-- User Information -->
-                    <div class="card-body border-top">
+                    <label class="profile-label">
+                        <i class="bi bi-person me-2"></i>
+                        Full Name
+                    </label>
 
-                        <h5 class="mb-3">Account Information</h5>
-
-
-                        <!-- Name -->
-                        <div class="mb-3">
-
-                            <label class="form-label text-muted">
-                                Name
-                            </label>
-
-                            <div class="form-control">
-                                <%= user.name %>
-                            </div>
-
-                        </div>
-
-
-                        <!-- Username -->
-                        <div class="mb-3">
-
-                            <label class="form-label text-muted">
-                                Username
-                            </label>
-
-                            <div class="form-control">
-                                @<%= user.username %>
-                            </div>
-
-                        </div>
-
-
-                        <!-- Email -->
-                        <div class="mb-3">
-
-                            <label class="form-label text-muted">
-                                Email
-                            </label>
-
-                            <div class="form-control">
-                                <%= user.email %>
-                            </div>
-
-                        </div>
-
-
-                        <!-- Phone -->
-                        <div class="mb-3">
-
-                            <label class="form-label text-muted">
-                                Phone
-                            </label>
-
-                            <div class="form-control">
-                                <%= user.phone %>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- Actions -->
-                    <div class="card-body border-top">
-
-                        <a href="/chat" class="btn btn-primary w-100 mb-2">
-
-                            <i class="bi bi-chat-dots me-2"></i>
-                            Back to Chat
-
-                        </a>
-
-
-                        <form action="/logout" method="POST">
-
-                            <button type="submit" class="btn btn-outline-danger w-100">
-
-                                <i class="bi bi-box-arrow-right me-2"></i>
-                                Logout
-
-                            </button>
-
-                        </form>
-
+                    <div class="profile-value">
+                        <%= user.name %>
                     </div>
 
                 </div>
+
+                <!-- Username -->
+                <div class="profile-field">
+
+                    <label class="profile-label">
+                        <i class="bi bi-at me-2"></i>
+                        Username
+                    </label>
+
+                    <div class="profile-value">
+                        <%= user.username %>
+                    </div>
+
+                </div>
+
+                <!-- Email -->
+                <div class="profile-field">
+
+                    <label class="profile-label">
+                        <i class="bi bi-envelope me-2"></i>
+                        Email Address
+                    </label>
+
+                    <div class="profile-value">
+                        <%= user.email %>
+                    </div>
+
+                </div>
+
+                <!-- Phone -->
+                <div class="profile-field">
+
+                    <label class="profile-label">
+                        <i class="bi bi-telephone me-2"></i>
+                        Phone Number
+                    </label>
+
+                    <div class="profile-value">
+                        <%= user.phone %>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="profile-actions">
+
+                <!-- Back to Chat -->
+                <a href="/chat" class="back-chat-button">
+                    <i class="bi bi-chat-dots"></i>
+                    Back to Chat
+                </a>
+
+                <!-- Logout -->
+                <form action="/logout" method="POST">
+
+                    <button type="submit" class="logout-button">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </button>
+
+                </form>
 
             </div>
 

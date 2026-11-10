@@ -1,0 +1,355 @@
+
+/* =========================
+   Chattr Profile Page
+   Black & Blue Theme
+========================= */
+
+:root {
+    --bg-color: #000000;
+    --card-color: #111111;
+    --field-color: #171717;
+
+    --border-color: #292929;
+
+    --text-color: #EDEDED;
+    --muted-color: #888888;
+
+    --accent-color: #1688D4;
+    --accent-hover: #0878BF;
+}
+
+
+/* General */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    background-color: var(--bg-color);
+    color: var(--text-color);
+
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+
+/* Main Container */
+
+.profile-container {
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 30px 15px;
+}
+
+
+/* Profile Card */
+
+.profile-card {
+    width: 100%;
+    max-width: 480px;
+
+    background-color: var(--card-color);
+
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+}
+
+
+/* Profile Header */
+
+.profile-header {
+    padding: 35px 25px;
+
+    text-align: center;
+
+    background-color: var(--card-color);
+
+    border-bottom: 1px solid var(--border-color);
+}
+
+
+/* Avatar */
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin: 0 auto;
+
+    background-color: #171717;
+
+    border: 1px solid #333333;
+    border-radius: 50%;
+
+    color: var(--accent-color);
+}
+
+.profile-avatar i {
+    font-size: 55px;
+}
+
+
+/* Name */
+
+.profile-name {
+    margin-top: 20px;
+    margin-bottom: 6px;
+
+    color: var(--text-color);
+
+    font-size: 25px;
+    font-weight: 600;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* Username */
+
+.profile-username {
+    margin-bottom: 0;
+
+    color: var(--accent-color);
+
+    font-size: 14px;
+}
+
+
+/* Information Section */
+
+.profile-information {
+    padding: 25px;
+}
+
+
+/* Section Title */
+
+.section-title {
+    margin-bottom: 25px;
+
+    color: var(--text-color);
+
+    font-size: 17px;
+    font-weight: 600;
+}
+
+
+/* Profile Fields */
+
+.profile-field {
+    margin-bottom: 20px;
+}
+
+.profile-field:last-child {
+    margin-bottom: 0;
+}
+
+
+/* Labels */
+
+.profile-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--muted-color);
+
+    font-size: 13px;
+    font-weight: 500;
+}
+
+
+/* Field Values */
+
+.profile-value {
+    min-height: 46px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 12px 15px;
+
+    background-color: var(--field-color);
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    color: var(--text-color);
+
+    font-size: 14px;
+
+    overflow-wrap: anywhere;
+
+    transition: border-color 0.2s ease;
+}
+
+
+/* Field Hover */
+
+.profile-value:hover {
+    border-color: var(--border-color);
+}
+
+
+/* Actions Section */
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    padding: 22px 25px 25px;
+
+    border-top: 1px solid var(--border-color);
+}
+
+
+/* Back to Chat */
+
+.back-chat-button {
+    width: 100%;
+    min-height: 46px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 9px;
+
+    background-color: var(--accent-color);
+
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+
+    color: #FFFFFF;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: background-color 0.2s ease;
+}
+
+
+/* Back to Chat Hover */
+
+.back-chat-button:hover {
+    background-color: var(--accent-hover);
+
+    border-color: var(--accent-hover);
+
+    color: #FFFFFF;
+}
+
+
+/* Logout Form */
+
+.profile-actions form {
+    width: 100%;
+    margin: 0;
+}
+
+
+/* Logout Button */
+
+.logout-button {
+    width: 100%;
+    min-height: 46px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 9px;
+
+    background-color: transparent;
+
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    color: #E56B75;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+
+/* Logout Hover */
+
+.logout-button:hover {
+    background-color: #1A1012;
+
+    border-color: #74333A;
+
+    color: #FF7D87;
+}
+
+
+/* Button Focus */
+
+.back-chat-button:focus,
+.logout-button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+
+/* Responsive */
+
+@media (max-width: 576px) {
+
+    .profile-container {
+        padding: 20px 12px;
+    }
+
+    .profile-card {
+        border-radius: 12px;
+    }
+
+    .profile-header {
+        padding: 28px 20px;
+    }
+
+    .profile-information {
+        padding: 22px 18px;
+    }
+
+    .profile-actions {
+        padding: 20px 18px;
+    }
+
+    .profile-name {
+        font-size: 22px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-avatar i {
+        font-size: 48px;
+    }
+
+}

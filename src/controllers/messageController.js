@@ -28,7 +28,8 @@ const getMessages = async (req, res, next) => {
         if(before){
             const cursorMessage = await Message.findOne({
                 _id: before,
-                conversation: conversationId
+                conversation: conversationId,
+                deletedFor: { $ne: currentUser }
             });
 
             if(!cursorMessage){

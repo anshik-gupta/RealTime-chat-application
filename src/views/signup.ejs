@@ -5,229 +5,267 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Create Account - Chatly</title>
+    <title>Create Account - Chattr</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
+    <!-- Signup CSS -->
     <link rel="stylesheet" href="/css/signup.css">
 </head>
 
 <body class="auth-page">
 
-    <div class="container-fluid min-vh-100">
+    <main class="signup-layout">
 
-        <div class="row min-vh-100">
+        <!-- Illustration Section -->
+        <section class="illustration-section">
 
-            <!-- Left Side -->
-            <div class="col-lg-6 d-none d-lg-flex auth-brand-section">
+            <div class="illustration-overlay">
 
-                <div class="brand-content">
+                <div class="brand-logo">
+                    <i class="bi bi-chat-heart-fill"></i>
+                    <span>Chattr</span>
+                </div>
 
-                    <div class="brand-logo">
+                <div class="illustration-content">
+
+                    <h1>
+                        Talk.
+                        <span>Connect.</span>
+                        Stay close.
+                    </h1>
+
+                    <p>
+                        Find your people, share your moments,
+                        and make every conversation count.
+                    </p>
+
+                </div>
+
+                <div class="illustration-image">
+
+                    <img src="/images/login-illustration-dark.png" alt="People connecting and chatting">
+
+                </div>
+
+                <div class="illustration-footer">
+                    Made for conversations that matter.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Signup Section -->
+        <section class="signup-section">
+
+            <div class="signup-card">
+
+                <!-- Mobile Brand -->
+                <div class="mobile-brand">
+
+                    <div class="mobile-brand-icon">
                         <i class="bi bi-chat-heart-fill"></i>
                     </div>
 
-                    <h1>Chattr</h1>
+                    <span>Chattr</span>
+
+                </div>
+
+
+                <!-- Header -->
+                <div class="signup-header">
+
+                    <h2>Create Account</h2>
 
                     <p>
-                        Talk. Connect. Stay close.
+                        Join the conversation
                     </p>
 
-                    <div class="brand-decoration">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                </div>
+
+
+                <!-- Signup Form -->
+                <form action="/signup" method="POST" class="signup-form" id="signupForm">
+
+                    <!-- Name -->
+                    <div class="form-group">
+
+                        <label for="name">
+                            Name
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-person input-icon"></i>
+
+                            <input type="text" id="name" name="name" placeholder="Enter your name" autocomplete="name"
+                                required>
+
+                        </div>
+
                     </div>
+
+
+                    <!-- Username -->
+                    <div class="form-group">
+
+                        <label for="username">
+                            Username
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-at input-icon"></i>
+
+                            <input type="text" id="username" name="username" placeholder="Choose a username"
+                                autocomplete="username" required>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-envelope input-icon"></i>
+
+                            <input type="email" id="email" name="email" placeholder="Enter your email"
+                                autocomplete="email" required>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Phone -->
+                    <div class="form-group">
+
+                        <label for="phone">
+                            Phone Number
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-telephone input-icon"></i>
+
+                            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number"
+                                autocomplete="tel" required>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Password -->
+                    <div class="form-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="input-wrapper password-wrapper">
+
+                            <i class="bi bi-lock input-icon"></i>
+
+                            <input type="password" id="password" name="password" placeholder="Create a password"
+                                autocomplete="new-password" required>
+
+                            <button type="button" class="password-toggle" data-password-target="password"
+                                aria-label="Show password" aria-pressed="false">
+
+                                <i class="bi bi-eye"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+
+                        <label for="confirmPassword">
+                            Confirm Password
+                        </label>
+
+                        <div class="input-wrapper password-wrapper">
+
+                            <i class="bi bi-shield-check input-icon"></i>
+
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                placeholder="Confirm your password" autocomplete="new-password" required>
+
+                            <button type="button" class="password-toggle" data-password-target="confirmPassword"
+                                aria-label="Show confirm password" aria-pressed="false">
+
+                                <i class="bi bi-eye"></i>
+
+                            </button>
+
+                        </div>
+
+                        <small id="passwordMessage" class="password-message" aria-live="polite"></small>
+
+                    </div>
+
+
+                    <!-- Signup Button -->
+                    <button type="submit" class="signup-btn">
+
+                        <span>Create Account</span>
+
+                        <i class="bi bi-arrow-right"></i>
+
+                    </button>
+
+                </form>
+
+
+                <!-- Login -->
+                <div class="login-link-section">
+
+                    <span>
+                        Already have an account?
+                    </span>
+
+                    <a href="/login">
+                        Login
+                    </a>
+
+                </div>
+
+
+                <!-- Footer -->
+                <div class="signup-footer">
+
+                    <span>
+                        Chattr · Talk. Connect. Stay close.
+                    </span>
 
                 </div>
 
             </div>
 
+        </section>
 
-            <!-- Right Side -->
-            <div class="col-lg-6 d-flex align-items-center justify-content-center">
+    </main>
 
-                <div class="auth-card">
 
-                    <div class="text-center mb-4">
-
-                        <div class="mobile-logo">
-                            <i class="bi bi-chat-heart-fill"></i>
-                        </div>
-
-                        <h2>Create Account</h2>
-
-                        <p class="text-muted">
-                            Join the conversation
-                        </p>
-
-                    </div>
-
-
-                    <form action="/signup" method="POST" onsubmit="return validatePassword()">
-
-                        <!-- Name -->
-                        <div class="mb-3">
-
-                            <label for="name" class="form-label">
-                                Name
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-person"></i>
-                                </span>
-
-                                <input type="text" id="name" name="name" class="form-control"
-                                    placeholder="Enter your name" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Username -->
-                        <div class="mb-3">
-
-                            <label for="username" class="form-label">
-                                Username
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-at"></i>
-                                </span>
-
-                                <input type="text" id="username" name="username" class="form-control"
-                                    placeholder="Choose a username" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Email -->
-                        <div class="mb-3">
-
-                            <label for="email" class="form-label">
-                                Email
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-envelope"></i>
-                                </span>
-
-                                <input type="email" id="email" name="email" class="form-control"
-                                    placeholder="Enter your email" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Phone -->
-                        <div class="mb-3">
-
-                            <label for="phone" class="form-label">
-                                Phone Number
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-telephone"></i>
-                                </span>
-
-                                <input type="tel" id="phone" name="phone" class="form-control"
-                                    placeholder="Enter your phone number" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Password -->
-                        <div class="mb-3">
-
-                            <label for="password" class="form-label">
-                                Password
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-lock"></i>
-                                </span>
-
-                                <input type="password" id="password" name="password" class="form-control"
-                                    placeholder="Create a password" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Confirm Password -->
-                        <div class="mb-4">
-
-                            <label for="confirmPassword" class="form-label">
-                                Confirm Password
-                            </label>
-
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-                                    <i class="bi bi-shield-check"></i>
-                                </span>
-
-                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
-                                    placeholder="Confirm your password" required>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- Register Button -->
-                        <button type="submit" class="btn register-btn w-100">
-
-                            Create Account
-
-                            <i class="bi bi-arrow-right ms-2"></i>
-
-                        </button>
-
-                    </form>
-
-
-                    <!-- Login -->
-                    <div class="text-center mt-4">
-
-                        <span class="text-muted">
-                            Already have an account?
-                        </span>
-
-                        <a href="/login" class="login-link">
-                            Login
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
+    <!-- Signup JavaScript -->
     <script src="/js/signup.js"></script>
 
 </body>

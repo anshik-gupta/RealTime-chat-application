@@ -592,13 +592,12 @@ function createMessageElement(message) {
     messageWrapper.dataset.messageId = message._id;
 
     // Message alignment and styling
-    if (isOwnMessage) {
+     if (isOwnMessage) {
         messageWrapper.classList.add("justify-content-end");
 
         messageElement.classList.add(
             "d-inline-block",
-            "bg-primary",
-            "text-white",
+            "sent-message",
             "p-2",
             "rounded"
         );
@@ -607,8 +606,7 @@ function createMessageElement(message) {
 
         messageElement.classList.add(
             "d-inline-block",
-            "bg-light",
-            "text-dark",
+            "received-message",
             "p-2",
             "rounded"
         );

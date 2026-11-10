@@ -1,23 +1,201 @@
+/* =========================
+   Theme
+========================= */
+
+:root {
+  --bg: #000000;
+  --surface: #111111;
+  --input: #1a1a1a;
+  --border: #292929;
+
+  --text: #ededed;
+  --muted: #888888;
+
+  --blue: #1688d4;
+  --blue-hover: #0878bf;
+
+  --sent-bubble: #1688d4;
+  --received-bubble: #242424;
+}
+
+
+/* =========================
+   Main Layout
+========================= */
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.col-4.col-md-3.border-end {
+  background: var(--surface);
+}
+
+.col-8.col-md-9,
+#emptyChat,
 #messages {
-  overflow-y: auto;
+  background: var(--bg);
 }
-.message-status {
-  font-size: 11px;
-  align-self: flex-end;
+
+h4,
+#chatName {
+  color: var(--text);
 }
+
+/* =========================
+   Chat Presence
+========================= */
+
+#chatPresence {
+  color: #c4c4c4;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Online */
+#chatPresence.text-success {
+  color: #22c55e !important;
+  font-weight: 600;
+}
+
+/* Offline */
+#chatPresence.text-muted {
+  color: #c4c4c4 !important;
+  font-weight: 400;
+}
+
+/* Typing */
+#chatPresence:not(.text-success):not(.text-muted) {
+  color: #c4c4c4 !important;
+  font-weight: 400;
+}
+
+/* =========================
+   Empty Chat
+========================= */
+
+#emptyChat {
+  color: #a3a3a3;
+}
+
+#emptyChat h4 {
+  color: #b8b8b8;
+}
+
+#emptyChat p {
+  color: #737373;
+}
+
+#emptyChat i,
+#emptyChat svg {
+  color: #555555;
+}
+
+
+/* =========================
+   Borders
+========================= */
+
+.border-end,
+.border-bottom {
+  border-color: var(--border) !important;
+}
+
+
+/* =========================
+   Inputs
+========================= */
+
+#searchInput,
+#messageInput {
+  background: var(--input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+#searchInput::placeholder,
+#messageInput::placeholder {
+  color: #777777;
+}
+
+#searchInput:focus,
+#messageInput:focus {
+  background: var(--input);
+  color: var(--text);
+  border-color: #404040;
+  outline: none;
+  box-shadow: none;
+}
+
+/* =========================
+   Buttons
+========================= */
+
+#chatOptionsDropdown > button,
+#clearChatButton,
+#imageButton {
+  background: var(--input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-color: #404040 !important;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+#chatOptionsDropdown > button:hover,
+#clearChatButton:hover,
+#imageButton:hover {
+  background: #222222;
+  color: var(--blue);
+}
+
+
+/* =========================
+   Dropdown
+========================= */
+
+.dropdown-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.dropdown-item {
+  color: var(--text);
+  border-radius: 6px;
+}
+
+.dropdown-item:hover {
+  background: #222222;
+  color: var(--blue);
+}
+
+
+/* =========================
+   Search Results
+========================= */
 
 .search-user {
   padding: 12px 14px;
   margin-top: 6px;
   border-radius: 12px;
   cursor: pointer;
-  background: #f8f7ff;
-  border: 1px solid #ece8ff;
-  transition: all 0.2s ease;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .search-user:hover {
-  background: #eeeaff;
+  background: #1a1a1a;
+  border-color: #383838;
   transform: translateX(2px);
 }
 
@@ -33,17 +211,17 @@
 .search-user-name {
   font-size: 14px;
   font-weight: 600;
-  color: #222;
+  color: var(--text);
 }
 
 .search-user-username {
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--muted);
   margin-top: 3px;
 }
 
 .search-arrow {
-  color: #8b5cf6;
+  color: var(--blue);
   opacity: 0;
   transform: translateX(-5px);
   transition: all 0.2s ease;
@@ -53,17 +231,21 @@
   opacity: 1;
   transform: translateX(0);
 }
+
+
+/* =========================
+   Unread Badge
+========================= */
+
 .unread-badge {
   float: right;
-
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
 
   border-radius: 50%;
-
-  background-color: #d0d005;
-  color: rgb(13, 3, 3);
+  background: var(--blue);
+  color: #ffffff;
 
   font-size: 12px;
   font-weight: 600;
@@ -73,54 +255,69 @@
   justify-content: center;
 }
 
-/* Enlarge Image Modal */
-.image-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+
+/* =========================
+   Messages Container
+========================= */
+
+#messages {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #333333 transparent;
 }
 
-.image-modal img {
-  max-width: 90vw;
-  max-height: 90vh;
-  object-fit: contain;
-  border-radius: 6px;
+.message-wrapper {
+  margin-bottom: 12px !important;
 }
 
-.close-image-modal {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 40px;
-  cursor: pointer;
-  line-height: 1;
+.message-status {
+  font-size: 11px;
+  align-self: flex-end;
 }
 
-/* Remove focus glow from the message input */
-#messageInput:focus {
-  outline: none;
-  box-shadow: none;
+
+/* =========================
+   Sent Message Bubble
+========================= */
+
+.sent-message {
+  background: var(--sent-bubble);
+  color: #ffffff;
+
+  max-width: 75%;
+  padding: 10px 14px;
+
+  border-radius: 16px 16px 4px 16px !important;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-/* Remove focus glow from the image button */
-#imageButton:focus {
-  outline: none;
-  box-shadow: none;
+
+/* =========================
+   Received Message Bubble
+========================= */
+
+.received-message {
+  background: var(--received-bubble);
+  color: #ededed;
+
+  max-width: 75%;
+  padding: 10px 14px;
+
+  border: 1px solid #303030;
+  border-radius: 16px 16px 16px 4px !important;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-/* Remove focus glow from the send button */
-#sendButton:focus {
-  outline: none;
-  box-shadow: none;
-}
+
+/* =========================
+   Message Menu
+========================= */
 
 .message-menu-container {
   align-self: center;
@@ -128,11 +325,14 @@
 }
 
 .message-menu-button {
-  color: #777;
+  color: #777777;
   background: transparent;
+
   opacity: 0;
   visibility: hidden;
+
   padding: 4px 7px;
+
   transition:
     opacity 0.2s ease,
     visibility 0.2s ease;
@@ -145,8 +345,8 @@
 }
 
 .message-menu-button:hover {
-  color: #333;
-  background: rgba(0, 0, 0, 0.08);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .message-menu-container .dropdown-menu {
@@ -158,4 +358,77 @@
   padding: 9px 12px;
   border-radius: 6px;
   font-size: 14px;
+}
+
+
+/* =========================
+   Image Preview
+========================= */
+
+#imagePreviewContainer {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+
+/* =========================
+   Image Modal
+========================= */
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  background: rgba(0, 0, 0, 0.92);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+}
+
+.image-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
+
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.close-image-modal {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+
+  background: transparent;
+  border: none;
+
+  color: #ffffff;
+  font-size: 40px;
+
+  cursor: pointer;
+  line-height: 1;
+}
+
+
+/* =========================
+   Remove Focus Glow
+========================= */
+
+#messageInput:focus,
+#imageButton:focus,
+#sendButton:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* =========================
+   Remove Line Above Message Input
+========================= */
+
+.col-8.col-md-9 .border-top {
+  border-top: none !important;
 }
