@@ -1,5 +1,5 @@
 // Core imports
-import dns from "dns";
+// import dns from "dns";
 import "dotenv/config";
 import connectDB from "./config/db.js";
 import express from "express";
@@ -20,7 +20,7 @@ import socketAuthMiddleware from "./middleware/socketAuthMiddleware.js";
 import Message from "./models/messagesModel.js";
 import Conversation from "./models/conversationModel.js";
 
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+// dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 
