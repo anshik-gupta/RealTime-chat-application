@@ -365,12 +365,20 @@ io.on("connection", async (socket) => {
 
         const onlineCount = onlineUsers.get(socket.userId.toString());
 
+        if (!onlineCount) {
+            return;
+        }
+
         if (onlineCount <= 1) {
             onlineUsers.delete(socket.userId.toString());
 
             const conversations = await Conversation.find({
                 participants: socket.userId
             });
+
+            if(onlineUsers.has(socket.userId.toString())){
+                return;
+            }
 
             conversations.forEach(conv => {
                 conv.participants.forEach(participant => {
